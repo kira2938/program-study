@@ -1,0 +1,272 @@
+import os, csv, time, datetime, pprint, sys, urllib.request, urllib.error
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import pandas as pd
+import numpy as np
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+ 
+#sys.path.append('\study')
+#def method(val):
+#    print(val)
+
+class UserSide:
+    def __init__(self, search_url, select_area, select_key, csv_name):
+        self.url = search_url
+        self.area = select_area
+        self.key = select_key
+        self.csv = csv_name
+    
+    def base_url(self): # 検索url
+        return self.url
+    
+    def search_area(self): # 検索地域
+        return self.area
+    
+    def search_keyword(self): # 検索キーワード
+        return self.key
+    
+    def output_csv(self): # 選択する地域のhtmlからidを選択
+        return self.csv
+    
+class BrowserSide:
+    def __init__(self, area_input, key_input, area_id, keyword_id, search_btn_id, nextpage_btn_id):
+        self.area_input = area_input
+        self.key_input = key_input
+        self.area_id = area_id
+        self.keyword_id = keyword_id
+        self.search_btn_id = search_btn_id
+        self.nextpage_btn_id = nextpage_btn_id
+    
+    def area_input_select(self): # htmlから選択した地域のidを選択
+        return self.area_input
+    
+    def key_input_select(self): # htmlから選択した地域のidを選択
+        return self.key_input
+    
+    def area_id_select(self): # htmlから選択した地域のidを選択
+        return self.area_id
+    
+    def key_id_select(self): # htmlから選択したキーワードのidを選択
+        return self.keyword_id
+    
+    def search_id_select(self): # htmlから検索ボタンのidを選択
+        return self.search_btn_id
+    
+    def nextpage_id_select(self): # htmlから次のページボタンのidを選択
+        return self.nextpage_btn_id
+
+def bs_search():
+    page = 1
+    while True:
+        if len(driver.find_elements_by_class_name(tabe_html.nextpage_id_select())) > 0:
+            print("##############################page: {} ##############################".format(page))
+            driver.implicitly_wait(10)
+            page_source = driver.page_source
+            bs = BeautifulSoup(page_source, 'html.parser')
+
+            shop_id = []
+            shop_name = []
+            area_genre = []
+            shop_url = [] 
+            shop_rate = [] 
+            shop_review_cnt = []
+            data_list = [
+                shop_id , shop_name, area_genre, shop_url, shop_rate, shop_review_cnt
+            ]
+            osaki_shop_list = bs.find_all('li', class_='js-rst-cassette-wrap')
+            for lists in osaki_shop_list:
+                data_id = lists.get('data-rst-id')
+                shop_id.append(data_id)
+
+                shop_names = lists.find('a', class_='cpy-rst-name')
+                shop_name.append(shop_names.text)
+
+                area_genres = lists.find('span', class_='list-rst__area-genre')
+                area_genre.append(area_genres.text)
+
+                shop_urls = lists.find('a', class_='list-rst__rst-name-target')
+                href = shop_urls.get('href')
+                shop_url.append(href)
+
+                shop_rates = lists.find('span', class_='list-rst__rating-val')
+                if shop_rates is None:
+                    shop_rate.append('-')
+                else:
+                    shop_rate.append(shop_rates.text)
+
+                review_count = lists.find('a', class_='list-rst__rvw-count-target')
+                if review_count is None:
+                    shop_review_cnt.append('-')
+                else:
+                    shop_review_cnt.append(review_count.text)            
+
+            tabelog_done = pd.DataFrame(data_list)
+            #df = df.append(tabelog_done, ignore_index=True)
+
+            print(tabelog_done)
+
+            nextpage = driver.find_element_by_class_name(tabe_html.nextpage_id_select()).get_attribute("href")
+            driver.get(nextpage)
+            page += 1
+            driver.implicitly_wait(10)
+            time.sleep(5)
+        else:
+            print('##################################################Last page##################################################')
+            page_source = driver.page_source
+            bs = BeautifulSoup(page_source, 'html.parser')
+
+            shop_id = []
+            shop_name = []
+            area_genre = [] 
+            shop_url = [] 
+            shop_rate = [] 
+            shop_review_cnt = []
+            data_list = [
+                shop_id , shop_name, area_genre, shop_url, shop_rate, shop_review_cnt
+            ]
+            osaki_shop_list = bs.find_all('li', class_='js-rst-cassette-wrap')
+            for lists in osaki_shop_list:
+                data_id = lists.get('data-rst-id')
+                shop_id.append(data_id)
+
+                shop_names = lists.find('a', class_='cpy-rst-name')
+                shop_name.append(shop_names.text)
+
+                area_genres = lists.find('span', class_='list-rst__area-genre')
+                area_genre.append(area_genres.text)
+
+                shop_urls = lists.find('a', class_='list-rst__rst-name-target')
+                href = shop_urls.get('href')
+                shop_url.append(href)
+
+                shop_rates = lists.find('span', class_='list-rst__rating-val')
+                if shop_rates is None:
+                    shop_rate.append('-')
+                else:
+                    shop_rate.append(shop_rates.text)
+
+                review_count = lists.find('a', class_='list-rst__rvw-count-target')
+                if review_count is None:
+                    shop_review_cnt.append('-')
+                else:
+                    shop_review_cnt.append(review_count.text)
+
+            tabelog_done = pd.DataFrame(data_list)
+            #df = df.append(tabelog_done, ignore_index=True)
+
+            print(tabelog_done)
+            break
+            
+        data_list_n = np.array(tabelog_done)        
+        writer.writerows(data_list_n.T)
+            
+    data_list_n = np.array(tabelog_done)        
+    writer.writerows(data_list_n.T)
+
+
+    
+    
+    
+# ブラウザを立ち上がらないように設定
+browser_path = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+chromedriver_path = r'C:\Users\study\Desktop\chromedriver_win32\chromedriver.exe' 
+options = Options()
+options.binary_location = browser_path # chromeのパスを指定
+options.add_argument('--headless') # ヘッドレスモードを有効にする（コメントアウトするとブラウザ表示）
+driver = webdriver.Chrome(chrome_options = options, executable_path=chromedriver_path) # webdriverのパス指定
+
+# サーバーに負担をかけないように待機 implicitly_wait(秒)
+driver.implicitly_wait(5)
+
+# UserSide("食べログURL", "検索するエリア", "検索するキーワード", "csvのファイル名(エリアを英語で)") 
+# 編集するところはエリアとキーワード、csvファイル名
+tabe_input = UserSide("https://tabelog.com/", "渋谷", "焼肉", "shibuya")
+
+# 編集するところは "ui-id-6", "ui-id-14"
+# エリア、キーワードを入力するとリストが表示され、そのリストから検索したいエリア（キーワード）を選択する
+# エリアのリストは"ui-id-3"が一番上にくる
+# キーワードのリストは"ui-id-13"が一番上にくる
+tabe_html = BrowserSide("sa", "sk", "ui-id-3", "ui-id-14", "js-global-search-btn", "c-pagination__arrow--next")
+
+
+now = datetime.datetime.now()
+if(os.path.isfile(r'C:\Users\study\python_study\tabelog_' + tabe_input.output_csv() + '_{0:%Y%m%d}.csv'.format(now)) == False):
+    
+    # ブラウザでページを開く
+    driver.get(tabe_input.base_url())
+
+    #############################地域#############################
+    # 検索地域入力欄に指定したキーワード入力
+    elem = driver.find_element_by_id(tabe_html.area_input_select())
+    elem.clear()
+    elem.send_keys(tabe_input.search_area())
+
+    # ドロップダウンリストから選んで選択
+    elem = driver.find_element_by_id(tabe_html.area_id_select())
+    elem.click()
+    ##############################################################
+
+    ########################キーワード#############################
+    # 検索地域入力欄に指定したキーワード入力
+    #elem = driver.find_element_by_id(tabe_html.key_input_select())
+    #elem.clear()
+    #elem.send_keys(tabe_input.search_keyword())
+
+    # ドロップダウンリストから選んで選択
+    #elem = driver.find_element_by_id(tabe_html.key_id_select())
+    #elem.click()
+    ##############################################################
+
+    # 検索ボタンをクリック
+    elem = driver.find_element_by_id(tabe_html.search_id_select())
+    elem.click()
+
+    driver.implicitly_wait(10)
+
+
+    # スクレイピング
+    with open(r'C:\Users\study\python_study\tabelog_' + tabe_input.output_csv() + '_{0:%Y%m%d}.csv'.format(now), 'w', encoding='utf_8_sig') as f:
+        header =['id', '店舗名', 'エリア/ジャンル', '店舗URL', '評価点', '口コミ数']
+        writer = csv.writer(f, lineterminator='\n')
+        writer.writerow(header)
+
+        bs_search()
+else:
+    print('ファイルが存在します')
+    pass
+time.sleep(5)
+
+print("DONE")
+
+
+
+# スクレイピング
+#now = datetime.datetime.now()
+#def writeCsv(fname, check):
+#    if not check:
+#        with open(fname, 'w', encoding='utf_8_sig') as f:
+#            header =['id', '店舗名', 'エリア/ジャンル', '店舗URL', '評価点', '口コミ数']
+#            writer = csv.writer(f, lineterminator='\n')
+#            writer.writerow(header)   
+#            bs_search()
+#    else:
+#        pass
+
+#if __name__ == '__main__':
+#    os.chdir(r'C:\Users\study\python_study')
+#    fpath = os.getcwd()
+#    fname = 'tabelog_' + tabe_input.output_csv() + '_{0:%Y%m%d}.csv'.format(now)
+#    fpn = fpath + '/' + fname
+#    print(fpn)
+    
+#    check = os.path.isfile(fpn)
+#    print(str(check))
+#    print(type(check))
+
+#    writeCsv(fname, check)l
+    
+#time.sleep(5)
+
+#print("DONE")
+
