@@ -25,3 +25,27 @@ from django.http import HttpResponse
 def index(request):
     return HttpResponse("Hello Django!!")
 #HttpResponse(送信内容)
+
+#アプリにurls.pyを作成 & アプリ名/urls.pyのスクリプト
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.index, name='index')
+]
+
+#プロジェクトフォルダのurls.py書き換え
+import path, include
+
+urlpatternsに追記
+path(adminのpath)
+path(r'アプリ名/', include('アプリ名.urls'))
+path(アクセスするアドレス, 呼び出す処理)
+
+#クエリーパラメーター
+ex) http://アドレス/?キー=値&キー
+
+アプリ名のviews.pyを修正
+def index(request):
+    msg = request.GET['msg']
+    return HttpResponse('you typed: "' + msg + '".')
