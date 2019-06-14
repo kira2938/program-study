@@ -1,0 +1,195 @@
+import os, csv, time, datetime, pprint
+from selenium import webdriver
+import urllib.request, urllib.error
+from bs4 import BeautifulSoup
+import pandas as pd
+import numpy as np
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+ 
+
+# ブラウザを立ち上がらないように設定
+options = Options()
+options.binary_location = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" # chromeのパスを指定
+options.add_argument('--headless') # ヘッドレスモードを有効にする（コメントアウトするとブラウザ表示）
+driver = webdriver.Chrome(chrome_options = options, executable_path=r'C:\Users\study\Desktop\chromedriver_win32\chromedriver.exe') # webdriverのパス指定
+
+# サーバーに負担をかけないように待機 implicitly_wait(秒)
+driver.implicitly_wait(5)
+
+url = "https://tabelog.com/"
+area1 = "東新宿" # 地域入力
+area2 = "ui-id-3" # リストの順番の初めは3から
+keyword1 = "焼肉" # キーワード入力
+keyword2 = "ui-id-14" # リストの順番の初めは13から
+search = "js-global-search-btn"
+next_page = "c-pagination__arrow--next"
+
+# ブラウザでページを開く
+driver.get(url)
+
+# url 確認用
+#print(driver.current_url)
+
+#############################地域#############################
+# 検索地域入力欄に指定したキーワード入力
+elem = driver.find_element_by_id('sa')
+elem.clear()
+elem.send_keys(area1)
+
+# ドロップダウンリストから選んで選択
+elem = driver.find_element_by_id(area2)
+elem.click()
+##############################################################
+
+########################キーワード#############################
+# 検索地域入力欄に指定したキーワード入力
+#elem = driver.find_element_by_id('sk')
+#elem.clear()
+#elem.send_keys(keyword1)
+
+# ドロップダウンリストから選んで選択
+#elem = driver.find_element_by_id(keyword2)
+#elem.click()
+##############################################################
+
+# 検索ボタンをクリック
+elem = driver.find_element_by_id(search)
+elem.click()
+
+driver.implicitly_wait(10)
+
+# pandasで用意さてたcsvファイルを読み込んでくる
+# df = pd.read_csv(r'C:\Users\study\python_study\tabelog_test.csv', index_col=0 , encoding="shift-jis")
+
+# スクレイピング
+page = 1
+now = datetime.datetime.now()
+
+with open(r'C:\Users\study\python_study\tabelog_higasishinjuku_{0:%Y%m%d}.csv'.format(now), 'w', encoding='utf_8_sig') as f:
+    header =['id', '店舗名', 'エリア/ジャンル', '店舗URL', '評価点', '口コミ数']
+    writer = csv.writer(f, lineterminator='\n')
+    writer.writerow(header)
+    while True:
+        if len(driver.find_elements_by_class_name(next_page)) > 0:
+            print("##############################page: {} ##############################".format(page))
+            driver.implicitly_wait(10)
+            page_source = driver.page_source
+            bs = BeautifulSoup(page_source, 'html.parser')
+
+            shop_id = []
+            shop_name = []
+            area_genre = []
+            shop_url = [] 
+            shop_rate = [] 
+            shop_review_cnt = []
+            data_list = [
+                shop_id , shop_name, area_genre, shop_url, shop_rate, shop_review_cnt
+            ]
+            osaki_shop_list = bs.find_all('li', class_='js-rst-cassette-wrap')
+            for lists in osaki_shop_list:
+                data_id = lists.get('data-rst-id')
+                shop_id.append(data_id)
+
+                shop_names = lists.find('a', class_='cpy-rst-name')
+                shop_name.append(shop_names.text)
+
+                area_genres = lists.find('span', class_='list-rst__area-genre')
+                area_genre.append(area_genres.text)
+
+                shop_urls = lists.find('a', class_='list-rst__rst-name-target')
+                href = shop_urls.get('href')
+                shop_url.append(href)
+
+                shop_rates = lists.find('span', class_='list-rst__rating-val')
+                if shop_rates is None:
+                    shop_rate.append('-')
+                else:
+                    shop_rate.append(shop_rates.text)
+
+                review_count = lists.find('a', class_='list-rst__rvw-count-target')
+                if review_count is None:
+                    shop_review_cnt.append('-')
+                else:
+                    shop_review_cnt.append(review_count.text)            
+
+            tabelog_done = pd.DataFrame(data_list)
+            #df = df.append(tabelog_done, ignore_index=True)
+
+            print(tabelog_done)
+
+            nextpage = driver.find_element_by_class_name(next_page).get_attribute("href")
+            driver.get(nextpage)
+            page += 1
+            driver.implicitly_wait(10)
+            time.sleep(5)
+        else:
+            print('##################################################Last page##################################################')
+            page_source = driver.page_source
+            bs = BeautifulSoup(page_source, 'html.parser')
+
+            shop_id = []
+            shop_name = []
+            area_genre = [] 
+            shop_url = [] 
+            shop_rate = [] 
+            shop_review_cnt = []
+            data_list = [
+                shop_id , shop_name, area_genre, shop_url, shop_rate, shop_review_cnt
+            ]
+            osaki_shop_list = bs.find_all('li', class_='js-rst-cassette-wrap')
+            for lists in osaki_shop_list:
+                data_id = lists.get('data-rst-id')
+                shop_id.append(data_id)
+
+                shop_names = lists.find('a', class_='cpy-rst-name')
+                shop_name.append(shop_names.text)
+
+                area_genres = lists.find('span', class_='list-rst__area-genre')
+                area_genre.append(area_genres.text)
+
+                shop_urls = lists.find('a', class_='list-rst__rst-name-target')
+                href = shop_urls.get('href')
+                shop_url.append(href)
+
+                shop_rates = lists.find('span', class_='list-rst__rating-val')
+                if shop_rates is None:
+                    shop_rate.append('-')
+                else:
+                    shop_rate.append(shop_rates.text)
+
+                review_count = lists.find('a', class_='list-rst__rvw-count-target')
+                if review_count is None:
+                    shop_review_cnt.append('-')
+                else:
+                    shop_review_cnt.append(review_count.text)
+
+            tabelog_done = pd.DataFrame(data_list)
+            #df = df.append(tabelog_done, ignore_index=True)
+
+            print(tabelog_done)
+            break
+            
+        data_list_n = np.array(tabelog_done)        
+        writer.writerows(data_list_n.T)
+            
+    data_list_n = np.array(tabelog_done)        
+    writer.writerows(data_list_n.T)
+        
+time.sleep(5)
+
+
+
+
+    
+#    writer.writerow(data_list.keys())
+#    writer.writerows(izip_longest(*data_list.values()))
+    
+
+
+# pandasからcsvに書き込んで保存
+#df.to_csv(r'C:\Users\study\python_study\tabelog_osaki_{0:%Y%m%d}.csv'.format(now), encoding='utf_8_sig', header=True, columns=['id', '店舗名', 'エリア/ジャンル' , '店舗URL', '評価点', '口コミ数'], index=False)
+
+
+print("DONE")
+
