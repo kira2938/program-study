@@ -1,0 +1,27 @@
+#コマンド
+
+#プロジェットの作成
+django-admin startproject ファイル名
+
+#プロジェット作成後、エディターから確認
+
+#プロジェットフォルダーに移動してサーバーを起動
+python manage.py runserver
+
+#ブラウザを立ち上げて確認
+http://localhost:8000/
+
+#サーバーを終了するコマンド
+ctrlキー + c
+
+#アプリケーション作成
+python manage.py startapp アプリ名
+
+
+#アプリ中のviews.pyにHttpResponseをインポート
+from django.http import HttpResponse
+
+#index関数を定義
+def index(request):
+    return HttpResponse("Hello Django!!")
+#HttpResponse(送信内容)
