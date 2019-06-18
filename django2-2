@@ -1,0 +1,29 @@
+########## Section 2-2 テンプレートを利用しよう
+
+#テンプレートはDjangoを使って、HTMLの内容をあれこれ操作できるようにするためのもの
+
+#アプリケーションの登録 → プロジェクトのsettings.py
+    INSTALLED_APPS = [
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        'アプリ名',
+    ]
+    
+#テンプレートを置くところ → プロジェクト\アプリ名\templates\アプリ名
+#index.htmlを作成する → プロジェクト\アプリ名\templates\アプリ名\index.html
+
+#アプリ名のurl.pyに入力
+    urlpatterns = [
+        path('', views.index, name='index'),
+    ]
+    
+#アプリ名のviews.pyに入力
+    from django.shortcuts import render
+    from django.http import HttpResponse
+    
+    def index(request)
+    return render(request, 'hello/index.html')
