@@ -26,4 +26,69 @@
     from django.http import HttpResponse
     
     def index(request)
-    return render(request, 'hello/index.html')
+        return render(request, 'hello/index.html')
+
+#djangoをレンダリングしてhtmlへ呼び出す
+    htmlから{{変数名}}で書く
+    
+    #アプリ名views.pyに関数を入力
+        def index(request):
+            params = {
+                    'title':'Hello/Index',
+                    'msg':'これは、サンプルで作ったページです。',
+                }
+            return render(request, 'hello/index.hmtl', params)                
+        
+#複数ページに移動
+    #index.htmlに追加入力
+        <p><a href="{% url goto %}">{{goto}}</a></p>
+    #views.pyに追加入力
+        def index(request):
+            params = {
+                    'title':'Hello/Index',
+                    'msg':'これは、サンプルで作ったページです。',
+                    'goto':'next',
+                }
+            return render(request, 'hello/index.hmtl', params)
+            
+        def next(request):
+            params = {
+                    'title':'Hello/Index',
+                    'msg':'これは、もう１つのページです。',
+                    'goto':'index',
+                }
+            return render(request, 'hello/index.html', params)
+            
+    #urls.pyに追加入力
+        urlpartterns = [
+            path('', views.index, name='index'),
+            path('next', views.next, name='next'),
+        ]
+        
+    #テンプレートタグ   →   {% url 名前 %} (名前がurls.pyのpathのnameと同じ)
+    
+    #静的ファイルを使用(static)
+    #フォルダの作成
+        アプリ名/static/アプリ名/ファイル(css)orフォルダ/ファイル(css)
+    #staticファイルをロード
+        index.html
+        {% load static %}
+        
+        <head>
+            <link rel="stylesheet" type="text/css" href="{% static 'アプリ名/ファイル(css)orフォルダ/ファイル(css) %}" />
+        </head>
+        
+    #formを用意する → index.html
+        <h1>{{title}}</h1>
+        <p>{{msg}}</p>
+        <form action="{% url 'form' %}" method="post">    →   action="{% url 'form' %}"
+            {% csrf_token %}    →   ※重要
+            <label for="msg">message: <label>
+            <input id="msg" type="text" name="msg">
+            <input type="submit" value="click">
+        </form>
+        
+※CSRF対策というものの必要なトークン　→　CSRFは Cross-Site Request Forgeriesの略で日本語にすると「リクエスト強要」
+外部からサイトへのフォーム送信などを行う攻撃。この攻撃で外部から大量のフォーム送信が送りつけられたりすることも考えられるため、
+この時に「正しくフォームから送信されたアクセスかどうか」をチェックする仕組みが必要になる
+        
