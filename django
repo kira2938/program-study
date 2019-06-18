@@ -1,51 +1,102 @@
-#コマンド
+#######################     #Section 2-1 Webページの基本を覚えよう
+
+#djangoは、MVCアーキテクチャーの考え方の基づいて設計されている。
+#<Model><View><Controller>を略してMVC
+#<Model>はデータアクセス関係　→   webアプリとDBとの間のやり取り
+#<View>は画面表示関係　→   画面に表示
+#<Controller>は全体の制御関係　→   webアプリで作成するプログラム
+
+
 
 #プロジェットの作成
-django-admin startproject ファイル名
+    django-admin startproject ファイル名
 
 #プロジェット作成後、エディターから確認
 
 #プロジェットフォルダーに移動してサーバーを起動
-python manage.py runserver
+    python manage.py runserver
 
 #ブラウザを立ち上げて確認
-http://localhost:8000/
+    http://localhost:8000/
 
 #サーバーを終了するコマンド
-ctrlキー + c
+    ctrlキー + c
 
 #アプリケーション作成
-python manage.py startapp アプリ名
+    python manage.py startapp アプリ名
 
 
 #アプリ中のviews.pyにHttpResponseをインポート
-from django.http import HttpResponse
+    from django.http import HttpResponse
 
 #index関数を定義
-def index(request):
-    return HttpResponse("Hello Django!!")
-#HttpResponse(送信内容)
+    def index(request):
+        return HttpResponse("Hello Django!!")
+    #HttpResponse(送信内容)
 
 #アプリにurls.pyを作成 & アプリ名/urls.pyのスクリプト
-from django.urls import path
-from . import views
+    from django.urls import path
+    from . import views
 
-urlpatterns = [
-    path('', views.index, name='index')
-]
+    urlpatterns = [
+        path('', views.index, name='index')
+    ]
 
 #プロジェクトフォルダのurls.py書き換え
-import path, include
+    import path, include
 
-urlpatternsに追記
-path(adminのpath)
-path(r'アプリ名/', include('アプリ名.urls'))
-path(アクセスするアドレス, 呼び出す処理)
+    urlpatternsに追記
+    path(adminのpath)
+    path(r'アプリ名/', include('アプリ名.urls'))
+    path(アクセスするアドレス, 呼び出す処理)
 
 #クエリーパラメーター
-ex) http://アドレス/?キー=値&キー
+    ex) http://アドレス/?キー=値&キー
 
-アプリ名のviews.pyを修正
-def index(request):
-    msg = request.GET['msg']
-    return HttpResponse('you typed: "' + msg + '".')
+#アプリ名のviews.pyを修正
+    def index(request):
+        msg = request.GET['msg']
+        return HttpResponse('you typed: "' + msg + '".')
+        
+#パラメーターが無いときの修正views.py
+    def index(request):
+    if 'msg' in request.GET:
+        msg = request.GET['msg']
+        result = 'you typed: "' + msg + '".'
+    else:
+        result = 'please send msg parameter!'
+    return HttpResponse(result)
+    
+#スマートな値の送り方
+    ex)http://アドレス/123/taro
+
+    #アプリ名のurls.pyを修正
+        urlpatterns = [
+            path('<int:id>/<nickname>/', views.index, name='index'),
+        ]
+        
+    #アプリ名のviews.pyを修正
+        def index(request, id, nickname):
+            result = 'your id: ' + str(id) + ', name: "' + nickname + '".'
+            return HttpResponse(result)
+            
+    # ブラウザ出力
+    your id: 123, name: "taro".
+    
+#色んなパターンが作れる
+    ex)http://アドレス/my_name_is_taro-yamada.I_am_39_years_old.
+    
+    #アプリ名のurls.pyを修正
+        urlpatterns = [
+            path('my_name_is_<nickname>.I_am_<int:age>_years_old.', views.index, name='index),
+        ]
+    
+    #アプリ名のviews.pyを修正
+        def index(request, nickname, age):
+            result = 'your account: ' + nickname + '" (' + str(age) + ').'
+            return HttpResponse(result)
+            
+    # ブラウザ出力
+    your account: taro-yamada" (39).
+    
+########    djangoはビューで処理を書く    #######
