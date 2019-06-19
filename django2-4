@@ -1,0 +1,40 @@
+##### Section 2-4 さまざまなフィールド
+
+    #formsモジュールについて
+        formsモジュール: [formクラス, CharFieldクラス, IntegerFieldクラス, 他のクラス....]
+        
+    #さまざまな入力フィールド
+        #CharField
+            一般的なテキスト入力のためのクラス
+            生成されるのは<input type="text">
+            インスタンス作成する際に、入力に関する設定情報を引数で指定することができる。
+                #用意されている引数
+                    required: 必要項目にするくどうかを示すもの、真偽値で設定してTrueならば必要項目になる
+                    min_length, max_length: 最小文字数、最大文字数を指定、いずれも整数値で指定
+        
+        #EmailField
+            メールアドレス入力のためのクラス、見た目はCharFieldと同じ
+            生成されるのは<input type="email">
+            CharFieldと同様でrequired, min_length, max_lengthの値を引数で用意されている
+        
+        
+        #IntegerField
+            整数値だけ入力のためのクラス
+            生成されるのは<input type="number">
+            比較的新しいWebブラウザでは、このタグに対応して整数値を増減するボタンが右に表示される。
+            ただし、増減するボタンはブラウザに依存するため、使っているブラウザによっては普通のテキストフィールドになってしまうこともある
+                #用意されている引数
+                        required: 必要項目にするくどうかを示すもの、真偽値で設定してTrueならば必要項目になる
+                        min_value, max_value: 最小値、最大値を指定、整数値で指定、これのより指定の範囲内の値しか入力できなくなる
+        
+        
+        #FloatField
+        
+        
+        
+        #URLField
+        
+        
+        
+        
+    
