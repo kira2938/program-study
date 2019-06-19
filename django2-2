@@ -28,6 +28,15 @@
     def index(request)
         return render(request, 'hello/index.html')
 
+※render関数について   →   render(《HttpRequest》,テンプレート)
+    第1引数：クライアントへの返送を管理するHttpRequestインスタンスを指定
+    第2引数：使用するテンプレートファイルを指定、「templates」フォルダからのパスで指定
+    render関数は、指定したテンプレートを読み込み、レンダリングを返す。
+    レンダリングとは、テンプレートに記述されている変数などを実際に使う値に置き換えて表示を完成されす処理
+    レンダリングに使ったrender関数は、Djangoに用意されている「ショートカット関数」と呼ばれているものの1つ
+
+renderは、テンプレートをレンダリングするのに使われる関数
+
 #djangoをレンダリングしてhtmlへ呼び出す
     htmlから{{変数名}}で書く
     
@@ -77,18 +86,3 @@
         <head>
             <link rel="stylesheet" type="text/css" href="{% static 'アプリ名/ファイル(css)orフォルダ/ファイル(css) %}" />
         </head>
-        
-    #formを用意する → index.html
-        <h1>{{title}}</h1>
-        <p>{{msg}}</p>
-        <form action="{% url 'form' %}" method="post">    →   action="{% url 'form' %}"
-            {% csrf_token %}    →   ※重要
-            <label for="msg">message: <label>
-            <input id="msg" type="text" name="msg">
-            <input type="submit" value="click">
-        </form>
-        
-※CSRF対策というものの必要なトークン　→　CSRFは Cross-Site Request Forgeriesの略で日本語にすると「リクエスト強要」
-外部からサイトへのフォーム送信などを行う攻撃。この攻撃で外部から大量のフォーム送信が送りつけられたりすることも考えられるため、
-この時に「正しくフォームから送信されたアクセスかどうか」をチェックする仕組みが必要になる
-        
