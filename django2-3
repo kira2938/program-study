@@ -1,0 +1,42 @@
+#### Section2-3 フォームで送信しよう
+
+#formを用意する → index.html
+        <h1>{{title}}</h1>
+        <p>{{msg}}</p>
+        <form action="{% url 'form' %}" method="post">    →   action="{% url 'form' %}"　フォームの送信先
+            {% csrf_token %}    →   ※重要
+            <label for="msg">message: <label>
+            <input id="msg" type="text" name="msg">
+            <input type="submit" value="click">
+        </form>
+        
+※CSRF対策というものの必要なトークン　→　CSRFは Cross-Site Request Forgeriesの略で日本語にすると「リクエスト強要」
+外部からサイトへのフォーム送信などを行う攻撃。この攻撃で外部から大量のフォーム送信が送りつけられたりすることも考えられるため、
+この時に「正しくフォームから送信されたアクセスかどうか」をチェックする仕組みが必要になる
+
+    #アプリ名/views.pyにフォーム関数を作成
+        def index(request):
+            paramas = {
+                    'title':'Hello'/Index',
+                    'msg':'お名前は？',
+                }
+            return render(request, 'hello/index.html', params)       
+
+        def form(reques):
+            msg = request.POST['msg']   →   index.htmlフォームのname="msg"に記入された値を取り出している、
+            GETと違くて、POSTはフォームから送信された値を取り出す
+            parmas = {
+                    'title':'Hello/Form',
+                    'msg':'こんにちは、 ' + msg + 'さん。'
+                }
+            return render(request, 'hello/indes.html', params)
+    #アプリ名/urls.pyの作成    
+        from django.urls import path
+        from . import views
+        
+        urlpatterns = [
+            path('', views.index, name='index'),
+            path('form', views.form, name='form'),
+        ]
+        
+    
