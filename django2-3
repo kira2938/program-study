@@ -39,4 +39,109 @@
             path('form', views.form, name='form'),
         ]
         
-    
+#Formクラスを使う     →       プロジェクト\アプリ名\forms.pyを作成
+        #forms.pyに入力
+        from  django import forms
+        
+        class HelloForm(forms.From):
+                name = forms.CharField(label='name')    →       forms.CharField()テキストを入力する一般的なフィールドクラス
+                mail = forms.CharField(label='mail')
+                age = forms.IntegerField(label='age')   →       forms.IntegerField整数の値を入力するためのフィールドクラス
+        
+        #Formクラス書き方
+        class クラス名(forms.Form):
+                変数 = フィールド
+                変数 = フィールド
+        
+        #アプリ名/views.pyに入力
+                from django.shortcuts import render
+                from django.http import HttpResponse
+                from .forms import HelloForm
+                
+                def index(request):
+                         ------------共通の処理------------
+                        params = {
+                                'title': 'Hello',
+                                'message': 'your data:',
+                                'form': HelloForm()
+                            }
+                        if (request.method == POST):
+                                 ------------POST時の処理------------
+                                params['message'] = '名前：' + request.POST['name'] + '<br>メール：' + request.POST['mail'] + '<br>年齢：' + request.POST['age']
+                                params['form'] = HelloForm(request.POST)
+                            return render(request, 'hello/index.html', params)
+
+
+        GET：用意されているデータをただ取り出すだけの処理
+        POST：新しいデータを作って受け取るような処理
+        
+        #アプリ名\index.htmml入力
+                <h1>{{title}}<\h1>
+                <p>{{message|safe}}</p> →       {{message|safe}}の|safeはフィルタと呼ばれている機能、Djangoのテンプレートでは{{}}を出力するときHTMLのタグ含まれていると自動的にエスケープ処理
+                <form action="{% url 'index' %}" method="post">
+                        {% csrf_token %}
+                        {{ form }} 
+                        <input type="submit" value="click">
+                
+         
+        #アプリ名\urls.pyに入力
+                urlpatterns = [
+                        path('', views.index, name='index'),
+                    ]
+        
+        #フィールドをタグで整える
+                {{ form }}      →       {{ form.タグ }}
+                form.as_table: ラベルとフィールドの7タグを<tr>と<tb>でくくって書き出す
+                form.as_p: ラベルとフィールド全体を<p>でくくる
+                form.as_ul: ラベルとフィールド全体を<li>タグでくくる
+                
+                <h1>{{title}}<\h1>
+                <p>{{message|safe}}</p>
+                <table>
+                <form action="{% url 'index' %}" method="post">
+                        {% csrf_token %}
+                        {{ form.as_table }} 
+                        <tr><td><\td><td><input type="submit" value="click"></td></tr>
+                </form>
+                </table>
+                
+                
+        #ビュー関数をクラス化     →       HelloViewクラスを作成
+                #アプリ名\views.pyに入力
+                        from django.shortcuts import render
+                        from django.http import HttpResponse
+                        from django.views.generic import TemplateView
+                        from .froms import HelloForm
+                        
+                        class HelloView(TemplateView):
+                                
+                                def __init__(self):     →       初期値
+                                        self.params = {
+                                                'title': 'Hello',
+                                                'message': 'your data:',
+                                                'form': HelloForm()
+                                        }
+                                        
+                                def get(self, request): →       GETアクセスの際に実行される処理(GETアクセスとは普通にアクセスしたときのこと)
+                                        return render(request, 'hello/index.html', self.params)
+
+                                def post(self, request):→       POST送信されたときの処理、request.POSTから値を取り出してメッセージを作成してself.params['message']に設定      
+                                        msg = 'あなたは、<b>' + request.POST['name'] + '(' + request.POST['age'] + ')</b>さんです。<br>メールアドレスは<b>' + request.POST['mail'] + '</b>ですね。'
+                                        self.params['message'] = msg
+                                        self.params['form'] = HelloForm(request.POST)  →        request.POSTを引数にしてHelloFormインスタンスを作成しself.params['form']に設定
+                                        return render(request, 'hello/index.html', self.params)
+                                                
+                #アプリ名\urls.py入力
+                        from django.conf.urls import url
+                        from .views import HelloView
+                        
+                        urlpatterns = [
+                                url(r'', HelloView.as_view(), name='index'),
+                        ]
+                        
+        
+        
+        
+        
+        
+        
