@@ -29,12 +29,209 @@
         
         
         #FloatField
-        
+            整数だけでなく、実数のできるようにした数値専用のクラス
+            生成されるのは<input type="number">
+            IntegerFieldと同様
         
         
         #URLField
+            URLを入力するためのクラス
+            入力したアドレスが存在するかどうかはチェックしない。ただ、形式だけをチェックする
+            生成されるのは<input type="url">
+            CharFieldと同様でrequired, min_length, max_lengthの値を引数で用意されている
         
         
-        
-        
+    #日時に関するフィールド
+        #DateField: 日付の形式のテキストのみ受け付けます。
+        #TimeField: 時刻の形式のテキストのみ受け付けます。
+        #DateTimeField: 日付と時刻を続けて書いたテキストのみ受け付けます。
     
+        #日時のフォーマットについて
+            時刻の形式は、時:分:秒
+            日付の形式は、「年-月-日」、「月-日-年」のいずれかの形式
+            ex)「2001/01/23」はエラーがでるため、利用の際は注意書きを表示
+  
+  
+    #チェックボックス
+        BooleanFieldクラス
+            #forms.pyに記述
+                class HelloForm(forms.Form):
+                    check = forms.BooleanField(label='Checkbox', required=False)
+            チェックボックスはOFFだと値が送信されない(未入力扱いになる)ため、requiredがTureだと、チェックをOFFにしたままでは送信できなくなってしまう
+            というわけで、入力用にBooleanFieldを使うなら、必ずrequired=Falseを用意しておくこと
+            
+            #index.htmlに記述(テンプレート修正)
+                <table>
+                <form action="{% url 'index' %}" method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <tr><td></td><td><input type="submit" value="click"></td></tr>
+                </form>
+                <\table>
+                
+            #views.pyに記述(スクリプト修正)
+                class HelloView(TemplateView):
+                    
+                    def __init__(self):
+                        self.params = {
+                                    'title': 'Hello',
+                                    'form': HelloForm(),
+                                    'result': None
+                                }
+                    def get(self, request):
+                        return render(request, 'hello/index.html', self.params)
+                        
+                    def post(self, request):
+                        if ('check' in request.POST):   →   チェックがONの時
+                            self.params['result'] = 'Checked!'
+                        else:   →   チェックがOFFの時
+                            self.params['result'] = 'not checked...'
+                        self.paarams['from'] = HelloForm(request.POST)
+                        return render(request, 'hello/index.html', self.params)
+    
+    #3択のNullBooleanField
+        NullBooleanFieldクラス:yes, no, unknownの3択できる
+            #forms.pyに記述
+                class HelloForm(forms.Form):
+                    check = forms.NullBooleanField(label='Check')
+
+            #views.pyに記述(スクリプト修正)
+            class HelloView(TemplateView):
+
+                def __init__(self):
+                    self.params = {
+                                'title': 'Hello',
+                                'form': HelloForm(),
+                                'result': None
+                            }
+                def get(self, request):
+                    return render(request, 'hello/index.html', self.params)
+
+                def post(self, request):
+                    chk = request.POST['check']
+                    self.params['result'] = 'you selected: "' + chk + '".'
+                    self.paarams['from'] = HelloForm(request.POST)
+                    return render(request, 'hello/index.html', self.params)
+
+            BooleanFieldクラスから修正したのはpostメソッドだけ
+
+    #プルダウンメニュー（チョイス）
+        ChoiceFieldクラス
+            #forms.pyに記述
+                class HelloForm(forms.Form):
+                    data = [
+                            ('one','item1'),
+                            ('two','item2'),
+                            ('three','item3')
+                        ]
+                    choice = forms.ChoiceField(label='Choice', choices=data)
+            変数dataにメニュー項目用のリストを用意
+
+            #views.pyに記述(スクリプト修正)
+                class HelloView(TemplateView):
+
+                    def __init__(self):
+                        self.params = {
+                                    'title': 'Hello',
+                                    'form': HelloForm(),
+                                    'result': None
+                                }
+                    def get(self, request):
+                        return render(request, 'hello/index.html', self.params)
+
+                    def post(self, request):
+                        ch = request.POST['choice']
+                        self.params['result'] = 'selected: "' + ch + '".'
+                        self.paarams['from'] = HelloForm(request.POST)
+                        return render(request, 'hello/index.html', self.params)
+
+    #ラジオボタン  
+        #forms.pyに記述
+            class HelloForm(forms.Form):
+                data = [
+                        ('one','radio 1'),
+                        ('two','radio 2'),
+                        ('three','radio 3')
+                    ]
+                choice = forms.ChoiceField(label='radio', choices=data, widget=forms.RadioSelect())
+
+        基本的な処理はプルダウンメニューと同じ
+        RadioSelectはウィジェットと呼ばれている。
+        ウィジェットはWebページに表示されるHTMLタグを管理するクラス。
+        
+    #選択リスト
+        リスト形式での表示はChoiceFieldで、ラジオボタンと同様、ウィジェットだけ変更
+        widget引数に、forms.Selectというクラスのインスタンスを指定  →   <select>タグを使うウィジェット
+        #forms.pyに記述
+            class HelloForm(forms.Form):
+                data = [
+                        ('one','item 1'),
+                        ('two','item 2'),
+                        ('three','item 3'),
+                        ('four','item 4'),
+                        ('five','item 5'),
+                    ]
+                choice = forms.ChoiceField(label='radio', choices=data, widget=forms.Select(attrs={'size': 5}))
+                
+        ChoiceFieldの使い方は同じ。widget引数に、forms.Selectを指定して、その引数にはattrs={'size': 5}と属性の情報を用意しておく。
+                
+        HelloView(views.py)の修正は不要です。基本的に「ChoiceFieldの値を取り出して表示する」という処理はまったく同じなので変更する必要ない。        
+        
+        
+    #複数選択項目
+        MultipleChoiceFieldクラス
+        選択リストで1項目だけを選択するなら他のChoiceFieldのコントロール類と使い方は変わらない。
+        が、<select>タグはmultiple属性を使って複数項目を選択できるようになる。
+        この場合の注意は単にフォーム側の修正だけでなく、値を取り出すビュー側も処理を変更する
+        引数はwidgetにforms.SelectMultipleと指定   →   Selectウィジェットの複数選択版 arrts={'size': 項目数}
+         #forms.pyに記述
+            class HelloForm(forms.Form):
+                data = [
+                        ('one','item 1'),
+                        ('two','item 2'),
+                        ('three','item 3'),
+                        ('four','item 4'),
+                        ('five','item 5'),
+                    ]
+                choice = forms.MultipleChoiceField(label='radio', choices=data, widget=forms.SelectMultiple(attrs={'size': 6}))
+                
+        #views.pyに記述(スクリプト修正)   →   取り出したリストをそのまま表示
+                class HelloView(TemplateView):
+
+                    def __init__(self):
+                        self.params = {
+                                    'title': 'Hello',
+                                    'form': HelloForm(),
+                                    'result': None
+                                }
+                    def get(self, request):
+                        return render(request, 'hello/index.html', self.params)
+
+                    def post(self, request):
+                        ch = request.POST.getlist('choice') →   「getlist」は送られたすべての値をリストとして取り出すメソッド
+                        self.params['result'] = 'selected: ' + str(ch) + '.'
+                        self.paarams['from'] = HelloForm(request.POST)
+                        return render(request, 'hello/index.html', self.params)
+                        
+        #views.pyに記述(スクリプト修正)   →   値を1つずつとりだして処理
+                class HelloView(TemplateView):
+
+                    def __init__(self):
+                        self.params = {
+                                    'title': 'Hello',
+                                    'form': HelloForm(),
+                                    'result': None
+                                }
+                    def get(self, request):
+                        return render(request, 'hello/index.html', self.params)
+
+                    def post(self, request):
+                        ch = request.POST.getlist('choice')
+                        result = '<ol><b>selected:</b>'
+                        for item in ch: →   getlistで取り出したリストからfor文で順番に値を取り出す処理
+                            result += '<li>' + item + '</li>'
+                        result += '</ol>'
+                        self.params['result'] = result
+                        self.paarams['from'] = HelloForm(request.POST)
+                        return render(request, 'hello/index.html', self.params)
+        
