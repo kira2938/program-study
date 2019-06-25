@@ -1,0 +1,144 @@
+###レコード取得の基本とManager###
+    #レコードを表示    →   アプリ名/views.pyに記述
+        from django.shortcuts import render
+        from django.http import HttpResponse
+        from .models import Friend
+        
+        def index(request):
+            data = Friend.objects.all()
+            params = {
+                    'title': 'Hello',
+                    'message': 'all friends.',
+                    'data': data,
+                }
+            return render(request, 'hello/index.html', params)
+            
+    #モデルの「objects」「all」
+        data = Friend.objects.all()
+        objectsには、「Manager」というクラスのインスタンスが設定されている。
+        すべてのレコードを取り出すには、objectsの「all」というメソッドを利用する
+        allは、テーブルにあるレコードをモデルのインスタンスにセット(たくさんの値をまとめて扱うオブジェクト)として取り出す。
+        1つ1つのレコードをモデルのインスタンスにして、それをセットにまとめてある
+        
+    #モデルの内容を表示  →   templates/アプリ名/index.htmlに記述
+        {% load static %]
+        <!doctype html>
+        <html lang="ja">
+        <head>
+            <meta charset="utf-8">
+            <title>{{title}}</title>
+            <link rel="stylesheet" type="text/css" href="{% static 'hello/css/style.css' %}
+        </head>
+        <body>
+            <h1>{{title}}</h1>
+            <p>{{message|safe}}</p>
+            <table>
+                <tr>
+                    <th>IDth>
+                    <th>NAME</th>
+                    <th>GENDER</th>
+                    <th>MAIL</th>
+                    <th>AGE</th>
+                    <th>BIRTHDAY</th>
+                </tr>
+            {% for item in data %}
+                <tr>
+                    <td>{{item.id}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{% if item.gender == False %}male{% endif %}
+                        {% if item.gender == True %}female{% endif %}</td>
+                    <td>{{item.mail}}</td>
+                    <td>{{item.age}}</td>
+                    <td>{{item.birthday}}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        </body>
+        </html>
+        
+        #for inで繰り返し表示
+            {% for item in data %}
+                繰り返す表示
+            {% endfor %}
+    #idとは
+        idという値は用意してない。これはDjangoが自動的に追加する値・
+        データベースでは、テーブルのレコードにすべて「プライマリキー」と呼ばれるものを用意している。
+        これは、すべてのレコードで異なる値が割り振られている特別な項目。
+        プライマリキーという値を使って1つ1つのレコードを識別している
+        
+        #ifタグで条件分岐
+            {% if 条件 %}
+                表示内容
+            {% endif %}
+            {% if item.gender == False %}male{% endif %}
+            {% if item.gender == True %}female{% endif %}
+            
+    #モデルの表示を完成させよう  →   アプリ名/urls.pyに記述 and css
+        from django.urls import path
+        from . import views
+        
+        urlpatterns = [
+            path('', views.index, name='index'),
+        ]
+     
+       ####css
+       table {
+            margin: 10px;
+            font-size: 14px;
+        }
+
+        table tr th {
+            background-color: #009;
+            color: #fff;
+            padding: 2px 10p;
+            border-size: 2px;
+        }
+
+        table tr td {
+            background-color: #eee;
+            color: #666;
+            padding: 2px 10px;
+            border-size: 2px;
+        }
+        
+    #指定のIDのレコードだけ取り出す   →   アプリ名/forms.pyに記述
+        from django import forms
+        
+        class HelloForm(forms.Form):
+            id = forms.IntegerField(label='ID')
+            
+        #index.htmlを修正
+            テーブルを表示する<table>タグの前に、フォームを表示する<table>タグを追記。{{ form.as_table }}で、フォームを表示。
+            <body>
+            <h1>{{title}}</h1>
+            <p>{{message|safe}}</p>
+            <table>
+            <form action="{% url 'index' %}" method="post">
+                {% csrf_token %}
+                {{ form.as_table }}
+                <tr><td></td><td><input type="submit" value="click"></td></tr>
+            </form>
+            </table>
+            <hr>
+            <table>
+                <tr>
+                    <th>IDth>
+                    <th>NAME</th>
+                    <th>GENDER</th>
+                    <th>MAIL</th>
+                    <th>AGE</th>
+                    <th>BIRTHDAY</th>
+                </tr>
+            {% for item in data %}
+                <tr>
+                    <td>{{item.id}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{% if item.gender == False %}male{% endif %}
+                        {% if item.gender == True %}female{% endif %}</td>
+                    <td>{{item.mail}}</td>
+                    <td>{{item.age}}</td>
+                    <td>{{item.birthday}}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        </body>
