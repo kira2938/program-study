@@ -278,3 +278,11 @@
                 }
             return render(request, 'hello/index.html', params)
         
+        #QuerySetを表示    →   index.htmlに記述
+            <body>
+                <h1>{{title}}</h1>
+                <table>
+                    {{data|safe}}
+                </table>
+            </body>
+
