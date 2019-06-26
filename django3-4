@@ -1,0 +1,118 @@
+###CRUDを作ろう
+    #CRUDとは
+        C   Create(レコードの新規作成)：新たにレコードを作成しテーブルに
+        R   Read(レコーのド取得)：テーブルからレコードを取得する
+        U   Update(レコードの更新)：既にテーブルにあるレコードの内容を変更し保存する
+        D   Delete(レコードの削除)：既にテーブルにあｒレコードを削除する
+        
+    4つの機能が実装できれば、Djangoのスクリプトからデータベースに保存されているレコードを操作できるようになる
+    必要最低限
+    
+    #Createを作ろう
+        friend = Friend()
+            friendに値を設定
+        friend.save()
+        #HelloFormの作成   →   アプリ名/forms.pyに記述
+            
+        #アプリ名/forms.pyに記述
+            from django import forms
+            
+            class HelloForm(formsForm):
+                name = forms.CharField(label='Name')
+                mail = forms.CharField(label='Email')
+                gender = forms.BooleanField(label='Gender', required=False)
+                age = froms.IntegerField(label='Age')
+                birthday = forms.DateField(label='Birth')
+                
+        #templates/アプリ名/create.htmlを作成
+            <body>
+                <h1>{{title}}</h1>
+                <table>
+                    <form action="{% url 'create' %}" method="post">
+                    {% csrf_token %}
+                    {{ form.as_table }}
+                    <tr><td></td><td><input type="submit" value="click"></td></tr>
+                    </form>
+                </table>
+            </body>
+            
+        #templates/アプリ名/index.htmlを修正
+            <body>
+                <h1>{{title}}</h1>
+                <table>
+                    <tr>
+                        <th>data</th>
+                    </tr>
+                {% for item in data %}
+                    <tr>
+                        <td>{{item}}</td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </body>
+            
+        #アプリ名/views.pyを修正
+            from django.shortcuts import render
+            from django.http import HttpResponse
+            from django.shortcuts import redirect
+            from .models import Friend
+            from .forms import HelloForm
+            
+            def index(request):
+                data = Friend.objects.all()
+                params = {
+                        'title': 'Hello',
+                        'data': 'data,
+                    }
+                return render(request, 'hello/index.html', params)
+                
+            #create model
+            def create(request):
+                params = {
+                        'title': 'Hello',
+                        'form': HelloForm(),
+                }
+                if (request.method == 'POST'):  →   POST送信されたかチェック
+                    name = request.POST['name']
+                    mail = request.POST['mail']
+                    gender = 'gender' in request.POST
+                    age = request.POST['age']
+                    birth = request.POST['birthday']
+                    friend = Friend(name=name, mail=mail, gender=gender, age=age, birthday=birth)   →   上の各値のもとにFriendインスタンスを作成
+                    friend.save()   →   インスタンスを保存
+                    return redirect(to='/hello')    →   引数のtoに指定したアドレスにリダイレクト
+                return render(request, 'hello/create.html', params)
+                    
+        #アプリ名/urls.pyに記述
+            urlpatterns = [
+                path('', views.index, name='index'),
+                path('create', views.create, name='create'),
+            ]
+            
+        #http://localhost:8000/アプリ名/create
+            
+    #ModelFormを使う   →   forms.pyにクラスを追加
+        from django import forms
+        from.models import Friend
+        
+        class FriendForm(forms.ModelForm):
+            class meta:
+                model = Friend  →   モデルクラス
+                fields = ['name', 'mail', 'gender', 'age', 'birthday']　→    [フィールド]
+                
+    #create関数を修正    →   アプリ名/views.py
+        from .forms import FriendForm
+        
+        def create(request):
+            if (request.method == 'POST'):
+                obj = Friend()  →   Friendクラスのインスタンス作成（引数が指定してないので初期状態のインスタンス）
+                friend = FriendForm(request.POST, instance=obj) →   FriendFormのインスタンスを作成、POST送信まとめ、riendインスタンスを指定
+                frienb.save()
+                return redirect(to='/hello')
+            params = {
+                'title': 'Hello',
+                'form': FriendForm(),
+            }
+            return render(request, 'hello/create.html', params)
+        
+    
