@@ -34,7 +34,7 @@
             <p>{{message|safe}}</p>
             <table>
                 <tr>
-                    <th>IDth>
+                    <th>ID</th>
                     <th>NAME</th>
                     <th>GENDER</th>
                     <th>MAIL</th>
@@ -142,3 +142,139 @@
             {% endfor %}
             </table>
         </body>
+    
+    #ビュー関数を修正   →   アプリ名/views.py
+        from django.shortcuts import render
+        from django.http import HttpResponse
+        from .models import Friend
+        from .forms import HelloForm
+        
+        def index(request):
+            params = {
+                    'title': 'Hello',
+                    'message': 'all friends.',
+                    'from': HelloForm(),
+                    'data': [],
+                }
+            if (request.method == 'POST'):  →   POST送信されたかどうかチェック
+                num = request.POST['id']    →   フォームの値を取り出してnumに代入
+                item = Friend.objects.get(id=num)   →   objects.getでidの値がnumのレコードを1つだけ取り出した値をitemに代入
+                params['data'] = [item] →   getで取り出したインスタンスはセットに入れてparams['data']に代入
+                params['form'] = HelloForm(request.POST)
+            else:
+                params['data'] = Friend.objects.all()
+            return render(request, 'hello/index.html', params)
+            
+    #Managerクラスとは
+        「データベースクエリ」を操作するための機能を提供するクラス。
+        メソッドなどの内部から、SQLのクエリを作成してデータベースに問い合わせし、その結果(レコードなど)を受け取る。
+        pythonのメソッドを、データベースクエリに翻訳して実行するもの
+            
+            #「データベースクエリ」とは
+                データベースに対して、さまざまな要求をするためのもの
+                クエリというのは、テーブルへアクセスや、取り出すレコードの条件などの指定
+                ※クエリ：データベースへ問い合わせる内容を記述した命令文
+                
+    #モデルのリストを調べてみる  →   アプリ名/views.pyに記述
+        from django.shortcuts import render
+        from django.http import HttpResponse
+        from .models import Friend
+        
+        def index(request):
+            data = Friend.objects.all() →   テンプレートに渡すだけ
+            params = {
+                    'title': 'Hello',
+                    'data': data,
+                }
+            return render(request, 'hello/index.html', params)
+        
+        #index.htmlに記述
+        <body>
+            <h1>{{title}}</h1>
+            <p>{{data}}</p>
+            <table>
+                <tr>
+                    <th>data</th>
+                </tr>
+            {% for item in data %}
+                <tr>
+                    <td>{{item}}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        </body>
+        
+        #allで得られるのは「QuerySet」
+            QuerySetは、Setの派生くクラス。クエリ取得用にいろいろ機能拡張したセット。
+            
+    #valuesメソッド
+        「レコードの値だけ欲しい」という時にvaluesメソッドを利用。
+        
+        #アプリ名/views.pyに記述
+             def index(request):
+                data = Friend.objects.all().values()    →   index.htmlで<p>{{data}}</p>部分で表示（idごこにすべての情報を辞書で表示）
+                params = {
+                        'title': 'Hello',
+                        'data': data,
+                    }
+                return render(request, 'hello/index.html', params)
+    
+    #特定の項目だけ取り出す    →   アプリ名/views.pyに記述
+        def index(request):
+            data = Friend.objects.all().values('id', 'name')    →   valuesで項目を指定
+            params = {
+                    'title': 'Hello',
+                    'data': data,
+                }
+            return render(request, 'hello/index.html', params)
+            
+    #リストとして取り出す    →   アプリ名/views.pyに記述
+        def index(request):
+            data = Friend.objects.all().values_list('id', 'name', 'age')    →   values_listで項目を指定
+            params = {
+                    'title': 'Hello',
+                    'data': data,
+                }
+            return render(request, 'hello/index.html', params)
+            
+    #最初と最後、レコード数    →   アプリ名/views.pyに記述
+        first：allなどで得られたレコードの内、最初のものだけを返すメソッド
+        last：やはり多数のレコードの中から、最後のものだけを返すメソッド
+        count：取得したレコード数を返すメソッド
+    
+        def index(request):
+            num = Friend.objects.all().count()
+            first = Friend.objects.all().first()
+            last = Friend.object.all().last()
+            data = [num, first, last]
+            params = {
+                    'title': 'Hello',
+                    'data': data,
+                }
+            return render(request, 'hello/index.html', params)
+            
+    #QuesrySetの表示をカスタマイズ    →   アプリ名/views.pyに記述
+        from django.shortcuts import render
+        from django.http import HttpResponse
+        from .models import Friend
+        from django.db.models import QuerySet
+        
+        def __new_str__(self):
+            result = ''
+            for item in self:
+                result += '<tr>'
+                for k in item:
+                    result += '<td>' + str(k) + '=' + str(item[k]) + '</td>'
+                result += '</tr>'
+            return result
+            
+        QuerySet.__str__ = __new_str__
+        
+        def index(request):
+            data = Friend.objects.all().values('id', 'name', 'age')
+            params = {
+                    'title': 'Hello',
+                    'data': data,
+                }
+            return render(request, 'hello/index.html', params)
+        
