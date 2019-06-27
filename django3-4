@@ -100,19 +100,148 @@
                 model = Friend  →   モデルクラス
                 fields = ['name', 'mail', 'gender', 'age', 'birthday']　→    [フィールド]
                 
-    #create関数を修正    →   アプリ名/views.py
-        from .forms import FriendForm
+        #create関数を修正    →   アプリ名/views.py
+            from .forms import FriendForm
+
+            def create(request):
+                if (request.method == 'POST'):
+                    obj = Friend()  →   Friendクラスのインスタンス作成（引数が指定してないので初期状態のインスタンス）
+                    friend = FriendForm(request.POST, instance=obj) →   FriendFormのインスタンスを作成、POST送信まとめ、riendインスタンスを指定
+                    frienb.save()   →   ModelFormに設定されたreques.POSTの値をinstanceに設定したFriendインスタンスに設定し、レコードが保存される。
+                    return redirect(to='/hello')
+                params = {
+                    'title': 'Hello',
+                    'form': FriendForm(),
+                }
+                return render(request, 'hello/create.html', params)
         
-        def create(request):
-            if (request.method == 'POST'):
-                obj = Friend()  →   Friendクラスのインスタンス作成（引数が指定してないので初期状態のインスタンス）
-                friend = FriendForm(request.POST, instance=obj) →   FriendFormのインスタンスを作成、POST送信まとめ、riendインスタンスを指定
-                frienb.save()
-                return redirect(to='/hello')
-            params = {
-                'title': 'Hello',
-                'form': FriendForm(),
-            }
-            return render(request, 'hello/create.html', params)
+    #Updateを作る
+        #アプリ名/urls.pyに記述
+            urlpatterns = [
+                path('', views.index, name='index'),
+                path('create', views.create, name='create'),
+                path('edit/<int:num>', views.edit, name='edit',
+            ]
         
-    
+        #templates/アプリ名/index.htmlを修正
+            <body>
+                <h1>{{title}}</h1>
+                <table>
+                    <tr>
+                        <th>data</th>
+                        <th></th>
+                    </tr>
+                {% for item in data %}
+                    <tr>
+                        <td>{{item}}</td>
+                        <td><a href="{% url 'edit' item.id %}">Edit</a></td>    →   <a>タグで編集ページをリンク
+                    </tr>
+                {% endfor %}
+                </table>
+            </body>
+
+        #edit.htmlを作成   →   templates/アプリ名/edit.htmlを作成
+            {% load static %}
+            <!doctype html>
+            <html lang="ja">
+            <head>
+                <meta charset="utf-8">
+                <title>{{title}}</title>
+                <link rel="stylesheet" type="text/css" href="{% static 'アプリ名/css/style.css' %} />
+            </head>
+            <body>
+                <h1>{{title}}</h1>
+                <table>
+                    <form action="{% url 'edit' id %}" method="post">
+                    {% csrf_token %}
+                    {{ form.as_table }}
+                    <tr><td></td><td><input type="submit" value="click"></td></td></tr>
+                    </form>
+                </table>
+            </body>
+            </html>
+            
+        #アプリ名/views.pyに関数を追記
+            def edit(request, num): →   'edit/<int:num>'と設定したのでアドレスのnumの値がそのまま引数numに渡される。
+                obj = Friend.objects.get(id=num)    →   getでインスタンスを取得し、引数idに番号を指定するとそのID番号のインスタンスが取り出せる
+                if (request.method == 'POST'):
+                    friend = FriendForm(request.POST, instance=obj) →   Friendインスタンスを使って、FriendFormインスタンス作成し、保存する
+                    friend.save()
+                    return redirect(to='/hello')
+                params = {
+                    'title': 'Hello',
+                    'id': num,
+                    'form': FriendForm(instance=obj),
+                }
+                return render(request, 'hello/edit.html', params)
+            
+    #Deleteを作成
+        #アプリ名/urls.pyに追記
+            urlpatterns = [
+                path('', views.index, name='index'),
+                path('create', views.create, name='create'),
+                path('edit/<int:num>', views.edit, name='edit'),
+                path('delete/<int:num>', view.delete, name='delete'),
+            ]
+        
+        #templates/アプリ名/index.htmlを修正
+            <body>
+                <h1>{{title}}</h1>
+                <table>
+                    <tr>
+                        <th>data</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                {% for item in data %}
+                    <tr>
+                        <td>{{item}}</td>
+                        <td><a href="{% url 'edit' item.id %}">Edit</a></td>    →   <a>タグで編集ページをリンク
+                        <td><a href="{% url 'delete' item.id %}">Delete</a></td>    →   <a>タグで削除ページをリンク
+                    </tr>
+                {% endfor %}
+                </table>
+            </body>
+            
+        #delete.htmlを作成   →   templates/アプリ名/delete.htmlを作成
+            {% load static %}
+            <!doctype html>
+            <html lang="ja">
+            <head>
+                <meta charset="utf-8">
+                <title>{{title}}</title>
+                <link rel="stylesheet" type="text/css" href="{% static 'アプリ名/css/style.css' %} />
+            </head>
+            <body>
+                <h1>{{title}}</h1>
+                <table>
+                    <tr><th>ID</th><td>{{obj.id}}</td></tr>
+                    <tr><th>Name</th><td>{{obj.name}}</td></tr>
+                    <tr><th>Gender</th><td>
+                    {% if obj.gender == False %}male{% endif %}
+                    {% if obj.gender == True %}female{% endif %}</td></tr>
+                    <tr><th>Age</th><td>{{obj.age}}</td></tr>
+                    <tr><th>Birth</th><td>{{obj.birthday}}</td></tr>
+                    <form action="{% url 'delete' id %}" method="post">
+                    {% csrf_token %}
+                    <tr><td></td><td><input type="submit" value="click"></td></td></tr>
+                    </form>
+                </table>
+            </body>
+            </html>
+            
+        #アプリ名/views.pyに関数を追記
+            def delete(request, num):
+                friend = Friend.objects.get(id=num)
+                if (request.method == 'POST'):
+                    friend.delete()
+                    return redirect(to='/hello')
+                params = {
+                    'title': 'Hello',
+                    'id': num,
+                    'obj': friend,
+                }
+                return render(request, 'hello/delete.html', params)
+                
+        #CRUDより「検索」が重要  →   次のSectionで
+            
