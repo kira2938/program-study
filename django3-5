@@ -1,0 +1,112 @@
+###Section3-5 検索をマスターしよう
+    #検索とフィルター
+        フィルターはたくさんあるデータの中から必要なものを絞り込むためのもの
+        使い方は単純だが、フィルターの内容をどう設定するかが問題。
+        変数 = <model>.objects.filter(フィルターの内容)
+        
+        #アプリ名/urls.pyに記述
+            urlpatterns = [
+                path('', views.index, name='index'),
+                path('create', views.create, name='create'),
+                path('edit/<int:num>', views.edit, name='edit'),
+                path('delete/<int:num>', views.delete, name='delete'),
+                path('find', views.find, name='find'),
+                
+        #FindFormクラスを作る →   アプリ名/forms.pyに記述
+            class FindForm(forms.Form):
+                find = forms.CharField(label='Find', required=False)
+                
+        #find.htmlを作る   →   templates/アプリ名/find.htmlファイルを作成
+            <body>
+                <h1>{{title}}</h1>
+                <p>{{message|safe}}</p>
+                <table>
+                    <form action="{% url 'find' %}" method="post">
+                    {% csrf_token %}
+                    {{form}}
+                    <tr><th></th><td><<input type="submit" value="click"></td></tr>
+                    </form>
+                </table>
+                <hr>
+                <table>
+                    <tr>
+                        <th>data</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                {% for item in data %}
+                    <tr>
+                        <td>{{item}}</td>
+                        <td><a href="{% url 'edit' %}">Edit</a></td>
+                        <td><a href="{% url 'delete' %}">Delete</a></td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </body>
+            
+        #find関数を作る  →   アプリ名/views.pyに記述
+            from .forms import FindForm
+            
+            def find(request):
+                if ( request.method == 'POST'):
+                    msg = 'search result:'
+                    form = FindForm(request.POST)
+                    str = request.POST['find']
+                    data = Friend.objects.filter(name=str)
+                else:
+                    msg = 'search words...'
+                    form = FindForm()
+                    data = Friend.objects.all()
+                params = {
+                    'title': 'Hello',
+                    'message': msg,
+                    'form': form,
+                    'data': data,
+                }
+                return render(request, 'hello/find.html', params)
+                
+            http://localhost:8000/hello/findにアクセスして確認
+            
+            #filterのもっともシンプルな使い方
+                str = request.POST['find']
+                data = Friend.objects.filter(name=str)  →   name=strはname項目の値がstrのレコード
+    
+    #あいまい検索とは
+        例えば、「太郎」と検索したとき、「一太郎」も「山田太郎」も「太郎君」も検索できず、ただ「太郎」だけしか見つけられなかったのは困る。
+        こうした、より柔軟な検索が必要なとなったときに用いられるのが「あいまい検索」と呼ばれる。
+        検索テキストと完全一致するものだけを取り出すのではなく、検索テキストを含むものを取り出せるようにするためのもの。
+        filterメソッドの「項目名=値」の書き方の少し追記するだけで利用できるようになる。
+            ●値を含む検索 項目名__contains=値 →   例) filter(name__contains='検索機ワード')
+            ●値で始まるものを検索 項目名__startswich=値   →   例) filter(name__startswich='検索機ワード')
+            ●値で終わるものを検索 項目名__endswich=値 →   例) filter(name__endswich='検索機ワード')
+            例えば、name項目から「太郎」を含むものを検索したければ、filterメソッドの引数に「name__contains='太郎'」と指定する
+        
+        #__containsを試す
+            data = Friend.bojects.filter(name__contains=str)
+                検索するものを含む検索結果がでる
+                
+    #大文字小文字を区別しない
+        アルファベットのテキストを扱う時に注意しないといけないのが「大文字小文字」
+            ●大文字小文字を区別しない検索 項目名__iexact=値 →   例) filter(name__iexact='検索機ワード')
+        大文字小文字を区別しないあいまい検索は、__の後にiが付く
+            ●大文字小文字を区別しないあいまい検索 項目名__icontains=値    →   例) filter(name__icontains='検索機ワード')
+            ●大文字小文字を区別しないあいまい検索 項目名__istartswich=値  →   例) filter(name__istartswich='検索機ワード')
+            ●大文字小文字を区別しないあいまい検索 項目名__iendswich=値    →   例) filter(name__iendswich='検索機ワード')
+            
+    #数値の比較
+        数値を扱う場合、重要なのは「数値の比較」。例えば、「ageの値が20のものを検索」というならば、単純に「age=20」で、「ageの値が20以下のもの」
+            ●値と等しい 項目名=値
+            ●値より大きい 項目名__gt=値
+            ●値と等しいじか大きい 項目名__gte=値
+            ●値より小さい 項目名__lt=値
+            ●値より等しいか小さい 項目名__lte=値    →   例) filter(age__lte=int(変数か値))
+            
+    #AND検索
+        ○○歳以上○○歳以下の検索の場合は　→ 変数 = <<モデル>>.objects.filter(1つ目の条件、2つ目の条件)
+            val = str.split()
+            data = Friend.objects.filter(age__gte=[0], age__lte=val[1])
+        別の書き方   →   変数 = <<モデル>>.objects.filter(1つ目の条件).filter(2つ目の条件).filter(3つ目の条件).filter(4つ目の条件)
+            data = Friend.objects.filter(age__gte=[0]).filter(age__gte=[1])
+            
+            
+            
