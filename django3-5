@@ -108,5 +108,21 @@
         別の書き方   →   変数 = <<モデル>>.objects.filter(1つ目の条件).filter(2つ目の条件).filter(3つ目の条件).filter(4つ目の条件)
             data = Friend.objects.filter(age__gte=[0]).filter(age__gte=[1])
             
+    #OR検索
+        AもBもどっちも検索  →   Qという関数の引数に条件を指定したものを「|」記号でつなげてfilterの引数に書く
+            変数 = <<モデル>>.objects.filter( Q(1つ目の条件)| Q(2つ目の条件) )
             
+        #nameとmailから検索
+            from django.dbmodels import Q
             
+            def find(requqest):                
+                data = Friend.objects.filter(Q(name__contains=str)|Q(mail__constains=str))  →   dataだけ修正
+        
+    #リストを使って検索
+        検索したいのがたくさんあるという時に使う。
+            変数 = <<モデル>>.objects.filter(項目名__in=リスト)
+        
+        #書いた名前を全部検索
+            def find(request):
+                list = str.split()  →   list変数追加
+                data = Friend.objects.filter(name__in=list) →   dataは修正
