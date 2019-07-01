@@ -1,0 +1,189 @@
+###Section 4-1 データベースを更に極める###
+
+    #レコードの並べ替え
+        並べ替えの基本 →   <<モデル>>.objects.<<all or filter>>.order_by(項目名)
+        order_byは、allやfilterなど複数レコードを取得するメソッドの後に続けて記述する。
+        引数には、並べ替えの基準となる項目の名前を指定。複数指定する場合(項目名1, 項目名2)と指定する。
+        
+        #年齢順に並べ替え
+            アプリ名/views.pyに記述
+                def index(request):
+                    data = Friend.objects.all().order_by('age')
+                    params = {
+                            'title': 'Hello',
+                            'message': '',
+                            'data': data,
+                        }
+                    return render(request, 'hello/index.html', params)
+        
+            templates/アプリ名/index.html
+                <body>
+                    <h1>{{title}}</h1>
+                    <p>{{message|safe}}</p>
+                    <table>
+                        <tr>
+                            <th>id</th>
+                            <th>name</th>
+                            <th>age</th>
+                            <th>mail</th>
+                            <th>birthday</th>
+                        </tr>
+                    {% for item in data %}
+                        <tr>
+                            <td>{{item.id}}</td>
+                            <td>{{item.name}}</td>
+                            <td>{{item.age}}</td>
+                            <td>{{item.mail}}</td>
+                            <td>{{item.birthday}}</td>
+                        </tr>
+                    {% endfor %}
+                    </table>
+                </body>
+        
+        #逆順にする場合    →   <<モデル>>.objects.<<all or filter>>.order_by(項目名).reverse()
+            def index(request):
+                data = Friend.objects.all().order_by('age').reverse()
+                params = {
+                        'title': 'Hello',
+                        'data': data,
+                    }
+                return render(request, 'hello/index.html', params)
+                
+    #指定した範囲のレコードを取り出す   →   <<QuerySet>> [ 開始位置 : 終了位置 ]
+        アプリ名/views.pyに記述
+            def find(request):
+                if (request.method == 'POST'):
+                    msg = 'search result:
+                    form = FindForm(request.POST)
+                    str = request.POST['find']
+                    list = str.split()
+                    data = Friend.objects.all()[int(list[0]):int(list[1])]  →   []で指定する値は整数値なければいけない。テキスト値のままではエラー発生
+                else:
+                    msg = 'search words...'
+                    form = FindForm()
+                    data = Friend.objects.all()
+                params = {
+                        'title': 'Hello',
+                        'message': msg,
+                        'form': form,
+                        'data': data,
+                }
+                return render(request, 'hello/find.html', params)
+                
+        templates/アプリ名/find.htmlを修正
+            <body>
+                    <h1>{{title}}</h1>
+                    <p>{{message|safe}}</p>
+                    <table>
+                        <form action="{% url 'find' %}" method="post">
+                        {% csrf_token %}
+                        {{form}}
+                        <tr><th></th><td><input type="submit" value="click"></td></tr>
+                        </form>
+                    </table>
+                    <hr>
+                    <table>
+                        <tr>
+                            <th>id</th>
+                            <th>name</th>
+                            <th>age</th>
+                            <th>mail</th>
+                            <th>birthday</th>
+                        </tr>
+                    {% for item in data %}
+                        <tr>
+                            <td>{{item.id}}</td>
+                            <td>{{item.name}}</td>
+                            <td>{{item.age}}</td>
+                            <td>{{item.mail}}</td>
+                            <td>{{item.birthday}}</td>
+                        </tr>
+                    {% endfor %}
+                    </table>
+                </body>
+        
+    #レコードを集計する
+        多量の数値を扱う場合、保存してある値を取り出すだけでなく、必要なレコードの値を集計処理することもよくある。
+        こういう時は、必要なレコードをallやfilterで取り出し、そこから値を順に取り出して集計し計算するのが一般的。
+        例えば、「合計」や「平均」などの集計ならば、集計用の関数を使い。「aggregate」というメソッドで集計を行わせる。
+            変数 = <<モデル>>.objects.aggregate(関数)
+            Count(項目名):指定した項目のレコード数を返す
+            Sum(項目名):指定した項目の合計を計算する
+            Avg(項目名):指定した項目の平均を計算する
+            Min(項目名):指定した項目の最小値を返す
+            Max(項目名):指定した項目の最大値を返す
+
+        #ageの集計
+            from django.db.models import Count, Sum, Avg, Min, Max
+            
+            def index(request):
+                data = Friend.objects.all()
+                re1 = Friend.objects.aggregate(Count('age'))
+                re2 = Friend.objects.aggregate(Sum('age'))
+                re3 = Friend.objects.aggregate(Avg('age'))
+                re4 = Friend.objects.aggregate(Min('age'))
+                re5 = Friend.objects.aggregate(Max('age'))
+                msg = 'count:' + str(re1['age__count']) + '<br>Sum:' + str(re2['age__sum']) + '<br>Average:' + str(re2['age__avg']) + '<br>Min:' + str(re2['age__min']) + '<br>Max:' + str(re2['age__max'])
+                params = {
+                        'title': 'Hello',
+                        'message': msg,
+                        'data': data,
+                }
+                return render(request, 'hello/index.html', params)
+            re1['age__count'] → '項目名__関数名'
+            
+    #SQLを直接実行するには
+        Djangoでは、filterを使ってたいていの検索は行えるようになっている。
+        本格的なアプリ開発で非常に複雑な検索を行う必要がある場合、filterを組み合わせてそれを実現するのはかなり大変かも知らない。
+        そういう時は、「SQLのクエリを直接実行する」という技が用意されている。SQLデータベースは、SQLのクエリ（要するにコマンド）でデータベースとやり取りするから
+        Djangoの中から直接SQLクエリを実行できれば、どんなアクセスも思いにままというわけ。
+        これには、Managerクラスに用意されている「raw」というメソッドを使う。
+            変数 = <<モデル>>.objects.raw(クエリ文)
+        
+        #findを修正    →   アプリ名/views.pyを修正
+            def find(request):
+                if ( request.method == 'POST'):
+                    msg = request.POST['find']
+                    form = FindForm(request.POST)
+                    sql = 'select * from hello_friend'  → SQLクエリ文
+                    if ( msg != ''):
+                        sql += ' where ' + msg
+                    data = Friend.objects.raw(sql)
+                    msg = sql
+                else:
+                    msg = 'search words...'
+                    form = FindForm()
+                    data = Friend.objects.all()
+                params = {
+                        'title': 'Hello',
+                        'message': msg,
+                        'form': form,
+                        'data': data,
+                }
+                return render(request, 'hello/find.html' params)
+            
+    #SQLクエリを実行
+        #テーブル名は「hello_friend」   →   select * from hello_friend  アプリ名_モデル名
+            #select分が検索の基本
+                selectはSQLクエリでレコードを検索する際の基本。    select 項目名 from テーブル名
+            
+            #whereで条件を指定    →   select 項目 from テーブル where 条件
+                whwerはDjangoでいうとfilterの相当するイメージ
+                
+            #基本的な検索条件
+                ●完全一致   →   項目名 = 値
+                ●あいまい検索 →   項目名 like 値（%記号をつけて「ここにはどんなテキストも入ってよし」という指定）
+                ●数字の比較  →   項目名 <>= 値
+                ●AND/OR検索   →   式1 and 式2、式1 or 式2 
+                
+            #並べ替えと範囲指定
+                ●並べ替え   →   where ○○ order by 項目名、where ○○ order by 項目名 desc
+                ●範囲の指定  →   where ○○ limit 個数 offset 開始位置
+                
+    #SQLは非常手段
+        SQLクエリはなるべく使わないようにする。
+            理由は、Pythonのスクリプトの中に、Python以外のコードが含まれてしまう。→  メンテナンス性を考えPythonだけにする
+                
+    
+    
+    
