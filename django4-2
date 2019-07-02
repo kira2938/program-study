@@ -1,0 +1,128 @@
+###Section 4-2 バリデーションを使いこなそう
+    #バリデーションとは
+        モデルを作成したり編集する場合、考えなければいけに野が「値のチェック」。
+        モデルは、データベースにデータを保存する。そのデータに問題があった場合、知らずに保存するとエラーになったり、あるいはほぞんしたデータが原因で
+        思わぬトラブルが発生したりする。モデルは使わない、一般的なフォームでも事情は同じ。フォームに記入する値が正しい刑で入力されているかどうかを
+        きっちり調べておかないと後でエラーにつながってしまう。
+        こうした「値のチェック」のために用意されている機能が「バリデーション」
+        バリデーションは、フォームなどの入力項目に条件を設定し、その条件を満たしているかどうかを確認する機能。条件を満たしていれば、そのままレコードを
+        保存したり、フォームの内容をもとに処理を実行。満たしてない場合は、再度フォームページに移動してフォームを再表示すればいい。
+        
+    #forms.Formのバリデーション
+        モデルを使わない、一般的なフォームでのバリデーション
+        required = False  →   requiredは「必要項目」として設定するためのバリデーション機能。値=Falseは必要項目ではないようにしている
+        Djangoでは、forms.Formにフィールドの項目を用意すると、自動的にrequiredがTrueに設定される。
+        
+    #バリデーションをチェック
+        モデル用にフォーム(models.Form)の場合、saveするときにチェックを自動的に行う。
+        一般的なフォームの場合、送られたフォームの値を自分で取り出して利用するのが一般的。   →   自分でやる
+        if (<<Form>>.is_valid()):
+            エラー時の処理
+        else:
+            正常時の処理
+            
+        こんな、forms.FOrmの「is_valid」というメソッドを使ってチェックを行う
+        
+        #バリデーションを使う →   templates/アプリ名/check.html
+            <body>
+                <h1>{{title}}</h1>
+                <p>{{message}}</p>
+                <table>
+                    <form action="{% url 'check' %}" method="post">
+                    {% csrf_token %}
+                    {{ form.as_table }}
+                    <tr><td></td><td><input type="submit" value="click"></td></tr>
+                    </form>
+                </table>
+            </body>
+        
+        #アプリ名/urls.pyに追記
+            path('check', views.check, name='check')
+            
+        #アプリ名/forms.pyに追記
+            class CheckForm(forms.Form):
+                str = forms.CharField(label='Name')
+                
+        #アプリ名/views.pyに追記
+            from .forms import CheckForm
+            
+            def check(request):
+                params = {
+                        'title': 'Hello',
+                        'message': 'check validation.',
+                        'form': CheckForm(),
+                }
+                if (request.method == 'POST'):
+                    form = CheckForm(request.POST)
+                    params['form'] = form
+                    if (form.is_valid()):
+                        params['message'] = 'OK!'
+                    else:
+                        params['message'] = 'no good.'
+                return render(request, 'hello/check.html', params)
+                
+    #バリデーション種類
+        #CharFieldのバリデーション  (EmailFieldやURLFieldなど)     →   テキスト系
+            ●required   →   必要項目とするもの。Trueなら必要項目、Flaseならそうでもない
+            ●min_length, max_length →   入力するテキストの最小文字数、最大文字数を指定する
+            ●empty_value →  空の入力を許可するかどうかを指定する。requiredと似ていて、半角スペース1個だけ入れてもエラーが出るが、empty_valueはOK
+            
+            class CheckForm(forms.Form):
+                empty = forms.CharField(label='Empty', empty_value=Ture)
+                min = forms.CharField(label='Min', min_length=10)
+                max = forms.CharField(label='Max', max_length=10)
+        
+        #IntegerField/FloatFieldのバリデーション    →   数字系
+            ●required   →   必要項目とするもの。Trueなら必要項目、Flaseならそうでもない
+            ●min_value, max_value →   入力する数値の最小数、最大数を指定する
+            
+            class CheckForm(forms.Form):
+                required = forms.IntegerField(label='Required')
+                min = forms.IntegerField(label='Min', min_value=100)
+                max = forms.IntegerField(label='Max', max_value=1000)
+            
+        #日時関連のバリデーション
+            DateField、TimeField、DateTimeFieldは、「input_formats」という引数で指定  →   input_formats=[フォーマット1, フォーマット2, ...]
+
+        #フォーマット書き方
+            ●%Y →  年を表す数字
+            ●%m →  月を表す数字
+            ●%d →  日を表す数字
+            ●%H →  時を表す数字
+            ●%M →  分を表す数字
+            ●%S →  秒を表す数字
+            
+            class CheckForm(forms.Form):
+                date = forms.DateField(label='Date', input_formats=['%d'])  →   1～31の間の整数
+                time = forms.TimeField(label='Time')    →   時：分
+                datetime = forms.DateTimeField(label='DateTime')    →   日/月/年
+                
+    #バリデーションを追加
+        formクラスにメソッドを追加
+        class クラス名(forms.Form):
+            項目の用意
+            
+            def clean(self):
+                変数 = super().clean()
+                値を処理
+                
+        #raise ValidationErrorの働き
+            Djangoでは、エラーのクラスがあって、そのインスタンスを作って「raise」というキーワードで呼び出しができる。
+            バリデーションエラーは、「ValidationError」というクラスとして用意されている。
+                raise ValodationError(エラーメッセージ)
+        
+        #「NO」でエラー発生 →   アプリ名/forms.py
+            from django import forms
+            
+            class CheckForm(forms.Form):
+                str = forms.CharField(label='String')
+                
+                def clean(self):
+                    cleaned_data = super().clean()
+                    str = cleaned_data['str']
+                    if (str.lower().startswith('no')):
+                        raise forms.ValidationError('You input "NO"!')
+                        
+    #ModelFormでのバリデーション
+        
+        
