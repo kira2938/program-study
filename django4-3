@@ -1,0 +1,78 @@
+### Section 4-3 ページネーション ###
+    #ページネーションとは
+        データベースを使って多量のデータを扱う時、それらのデータを整理し表示する機能。
+        ページネーションというのは、「ページ分け」のための機能。
+        
+    #Paginatorクラスの使い方
+        ●インスタンスの作成
+            変数 = Paginator(コレクション、レコード数)
+            Paginatorのインスタンスを作成には、「レコード全体をまとめたコレクション」と「1ページ当たりのレコード数」の2つを引数として用意する
+            最初の「コレクション」というのは、リストやセット、辞書などのような多数の値をまとめて保管できるもの
+            「レコード全体をまとめたコレクション」というのは、allやfilterメソッドで得られるオブジェクト。
+        
+        ●指定ページのレコードを取り出す
+            変数 = <<Paginator>>.get_page(番号)
+            Paginatorインスタンスから、特定のページのレコードを取り出すには、「get_page」というメソッドを使う。
+            引数にページ番号を指定すれば、そのページのレコードをまとめて取り出す。この場合のページ番号は、インデックス番号と違い「1」から始まる。
+            また、指定にページ番号のレコードが見つからなかった場合は、最後のページのレコードを返す。
+            このget_pageで得られるのは、「Page」というクラスのインスタンス。これはコレクションになっていて、forなどを使い、リストやセットと同じ
+            感覚でレコードを取り出して処理することができる。
+            
+    #Friendをページごとに表示
+        #アプリ名/urls.pyを修正
+            path('', views.index, name='index')を削除
+            path('<int:num>', views.index, name='index')を追記
+            
+        #アプリ名/views.pyを修正
+            from django.core.paginator import Paginator     ★
+            
+            def index(request, num=1):
+                data = Friend.objects.all() →   allで取得、これを引数にしてPaginatorインスタンスを作成
+                page = Paginator(data, 3)   →   第2引数は3にして、1ページ当たり3つのレコード表示
+                params = {
+                        'title': 'Hello',
+                        'message': '',
+                        'data': page.get_page(num), →   引数で渡されるnumを使って、指定ページのPageを取得
+                }
+                return render(request, 'hello/index.html', params)
+                        
+    #ページの移動 →   書籍の通りだとエラー発生なので、修正して解決したコードは★で表示
+        <body>
+            <h1>{{title}}</h1>
+            <p>{{message|safe}}</p>
+            <table>
+                <tr>
+                    <th>id</th>
+                    <th>name</th>
+                    <th>age</th>
+                    <th>mail</th>
+                    <th>birthday</th>
+                </tr>
+            {% for item in data %}
+                <tr>
+                    <td>{{item.id}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.age}}</td>
+                    <td>{{item.mail}}</td>
+                    <td>{{item.birthday}}</td>            
+                </tr>
+            {% endfor %}
+            </table>
+            <div class="pagination">
+                {% if data.has_previous %}
+                    <a href="{% url 'index' %}">&laquo;first</a>        ★<a href="1">&laquo;first</a>
+                    <a href="{% url 'index' %}{{data.previous_page_number}}">&laquo;prev</a> ★<a href="{{data.previous_page_number}}">&laquo;prev</a> 
+                {% endif %}
+                <span class="current">
+                    [{{data.number}}/{{data.paginator.num_pages}}]
+                </span>
+                {% if daa.has_next %}
+                    <a href="{% url 'index' %}{{data.next_page_number}}">next&requo;</a>    ★<a href="{{data.next_page_number}}">next&requo;</a>
+                    <a href="{% url 'index' %}{{data.paginator.num_pages}}">last&raquo;</a> ★<a href="{{data.paginator.num_pages}}">last&raquo;</a>
+                {% endif %}
+            </div>
+        </body>
+        
+        
+            
+            
