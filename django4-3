@@ -73,6 +73,13 @@
             </div>
         </body>
         
-        
+    #ページ移動リンクの仕組み
+        #前のページに移動
+            {% if data.has_previous %}
+                ここにリンクを用意
+            {% endif %}
+            
+            「has_previous」のメソッドは、前のページがあるかどうかチェックするもの。
+            あればTrue →   「first」「prev」のリンクが表示される
             
             
