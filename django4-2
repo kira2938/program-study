@@ -147,7 +147,70 @@
                     params['message'] = 'no good.'
             return render(request, 'hello/check.html', params)
                     
+    #モデルのバリデーション設定
+        forms.FormとModelFormのバリデーションは違う。
         
+        #バリデーションルールの組み込み    →   アプリ名/models.pyを修正
+            from django.db import models
+            from django.core.validators import MinValueValidator, MaxValueValidator
+            
+            class Friend(models.Model):
+                name = models.CharField(max_length=100)
+                mail = models.CharField(max_length=200)
+                gender = models.BooleanField()
+                age = models.IntegerField(valitators=[MinValueValidator(0), MaxValuseValidator(150)])
+                birthday = models.DateField()
+                
+                def __str__(self):  以後省略
+            
+            ageに代入しているINtegerFieldインスタンスの引数にvalidatorsが入って、validatorsの引数にはリストが設定されている。
+            このリストには、「バリデータ」と呼ばれるクラスのインスタンスが用意されている。
+            バリデータは、バリデーションルールを実装するクラス。
+            
+    #モデルで使えるバリデータ
+        #MinValueValidator/MaxValueValidator    →   それぞれ入力可能な最小値と最大値を指定。インスタンス作成する際に引数に数値を指定。
+            ●MinValueValidator(値)
+            ●MaxValueValidator(値)
         
-        
-        
+        #MinLengthValidator/MaxLengthValidator  →   それぞれ入力可能な最小文字数と最大文字数を指定。インスタンス作成する際に引数に数値を指定。
+            ●MinLengthValidator(値)
+            ●MaxLengthValidator(値)
+            #アプリ名/models.pyに修正
+                form django.core.validators import MinLengthValidator
+                
+                class Friend(models.Model):
+                    name = models.CharField(max_length=100, validators=[MinLengthValidator(10)])
+                    mail = models.CharField(max_length=200, validators=[MinLengthValidator(10)])
+                    gender = models.BooleanField()
+                    age = models.IntegerField()
+                    birthday = models.DateField()
+                    
+                    def __str__(self):  以後省略
+
+        #EmailValidator/URLValidator
+            モデルには、EmailFieldやURLFieldなどを使い、メールアドレスやURLの入力を行うことができる。これらは標準でメールアドレスやURLの形式の
+            テキストしか受け付けなくなっているため、特にバリデーションなどを考える必要はない。
+            しかし、一般的なCharFieldなどを使ってメールアドレスやURLを入力させる場合、書かれた値がメールアドレスやURLの形式になっているかチェック
+            する必要がある。
+            
+            #アプリ名/models.pyに修正
+                form django.core.validators import URLValidator
+                
+                class Friend(models.Model):
+                    name = models.CharField(max_length=100, validators=[URLValidator()])
+                    mail = models.EmailField(max_length=200)
+                    gender = models.BooleanField()
+                    age = models.IntegerField()
+                    birthday = models.DateField()
+                    
+                    def __str__(self):  以後省略
+                
+                ここで、nameにURLFieldを追加したので、nameがURL以下のテキストを入力するとエラーが発生。
+                
+        #ProhibitNullCharacterValidator
+            null文字を禁止するためのもの。制御文字として多用されている。テキストでは、終端を表す文字として使われたりする。
+            
+        #RegexValidator →   インスタンス作成する際に引数に正規表現パターンを指定。
+            正規表現パターンを使って、パターンに合致する値かどうかをチェックするためのもの。引数には、正規表現パターンを指定
+            正規表現というのは、テキストをパターンえ検索するための技術で、Pythonに限らず様々な言語で用いられている。
+            
