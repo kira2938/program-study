@@ -214,3 +214,102 @@
             正規表現パターンを使って、パターンに合致する値かどうかをチェックするためのもの。引数には、正規表現パターンを指定
             正規表現というのは、テキストをパターンえ検索するための技術で、Pythonに限らず様々な言語で用いられている。
             
+            #アプリ名/models.pyに修正
+                form django.core.validators import RegexValidator
+                
+                class Friend(models.Model):
+                    name = models.CharField(max_length=100, validators=[RegexValidator(r'^[a-z]*$')])
+                    mail = models.EmailField(max_length=200)
+                    gender = models.BooleanField()
+                    age = models.IntegerField()
+                    birthday = models.DateField()
+                    
+                    def __str__(self):  以後省略
+                    
+                nameにRegexValidatorを設定し、a～zの小文字だけを入力許可ようにしている。大文字や数字よ入力するとエラー。
+                r'^[a-z]*$　→    小文字のアルファベットだけを表すパターン。
+                RegexValidatorは正規表現の使い方がわかっていないと、何が何だかわからない。
+                
+        #バリデータ関数を作成
+            バリデータが少ないので、自分で必要なバリデーションチェックの処理を作成する。
+            forms.Formではcleanメソッドを上書きして処理を組み込みした。このcleanメソッドを使ったやり方は、モデルでも使える。
+            モデルクラスにcleanメソッドを用意して、必要に応じてraise ValidationErrorを実行する。
+            
+            def 関数名(value):
+                処理
+            引数には、チェックする値が保管される。この値を調べて、何か問題があれば「raise Validation」を使ってエラーを発生させる
+            
+            #数字バリデータ関数作成
+                import re
+                form django.db import medels
+                from django.core.validators import ValidationError
+                
+                def number_only(value):
+                    if (re.match(r'^[0-9]*$', value) == None):
+                        raise ValidationError(
+                            '%(value)s is not Number!', params={'value': value},
+                            )
+                            
+                class Friend(models.Model):
+                    name = models.CharField(max_length=100, validators=[number_only])
+                    mail = models.EmailField(max_length=200)
+                    gender = models.BooleanField()
+                    age = models.IntegerField()
+                    birthday = models.DateField()
+                    
+                    def __str__(self):  
+                        return '<Friend:id=' + str(self.id) + ',' + self.name + '(' + str(self.age) + ')>'
+                        
+            #number_onlu関数の仕組み
+                if (re.match(r'^[0-9]*$', value) == None):
+                    reというのが、pythonの正規表現モジュール。この中にある「match」関数は、引数に指定したテキストとパターンがマッチするかを調べる。
+                    これで、指定のパターンとマッチする（当てはまる）場合は、その情報をまとめたオブジェクトが得られます。マッチしない場合は、
+                    Noneが返される。
+                name = models.CharField(max_length=100, validators=[number_only])
+                    validatorsのリストに、ただ「number_only」と関数名を書いているだけ。
+    
+    #フォームとエラーメッセージを個別に表示
+        基本的にforms.FormクラスやModelFormを使ってフォームを自動生成されてきて、エラー時のメッセージ表示なども自動で行ってくれた。
+        しかし、フォームをカスタマイズしたい場合には、個々のフィールドやエラーメッセージを個別に表示する必要がある。
+        ModelFormでフォームのインスタンスを用意しておけば、個々のフィールドやエラーメッセージをを取り出して表示させることができる。
+        
+        templates/アプリ名/check.html
+            <body>
+                <h1>{{title}}</h1>
+                <p>{{message}}</p>
+                <hr>
+                <ol>
+                {% for item in form %}
+                <li>{{item.name}} ({{item.value}}):{{ item.errors.as_text }}</li>
+                {% endfor %}
+                </ol>
+                <table>
+                    <form action="{% url 'check' %}" method="post">
+                    {% csrf_token %}
+                    <tr><th>名前</th><td>{{ form.name }}</td></tr>
+                    <tr><th>メール</th><td>{{ form.mail }}</td></tr>
+                    <tr><th>性別</th><td>{{ form.gender }}</td></tr>
+                    <tr><th>年齢</th><td>{{ form.age }}</td></tr>
+                    <tr><th>誕生日</th><td>{{ form.birthday }}</td></tr>
+                    <tr><td></td><td><input type="submit" value="click"></td></tr>
+                    </form>
+                </table>
+            </body>
+                
+        #フォームの項目生成
+            {{ form.name }} →   nameの入力タグが出力される。フォームの個々の値を書き出せば、その項目の入力タグを書き出せる。
+            
+        #エラーメッセージの出力
+            エラーメッセージは大きく2通り取り出し方がある。
+            formの「errors」という属性を使う
+                {{ form.errors }}
+            
+            1つ1つのフォームの項目を取り出し、そこからerrorsの値を取り出す
+                {% for item in form %}
+                    個々の処理
+                {% endfor %]
+            
+                <li>{{item.name}} ({{item.value}}):{{ item.errors.as_text }}</li>
+            
+            またerrorsは、その後に「as_text」をつけることでテキストとして値を取り出せる。forを使って必要な値を書き出せばいい。
+                
