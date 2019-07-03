@@ -124,5 +124,30 @@
                         raise forms.ValidationError('You input "NO"!')
                         
     #ModelFormでのバリデーション
+        モデルは、バリデーションの情報はフォームではなく、モデル本体に用意されている。
+        
+    #ModelFormでのチェックタイミング
+        ModelFormクラスは、FriendFormクラスから継承して作られた。
+        saveメソッドが呼び出されると、フォームとモデルの両方のバリデーションをチェックし、問題なければ保存を行う
+        
+    #checkでFriendモデルを利用する   →   アプリ名/views.pyに追記
+        def check(request):
+            params = {
+                    'title': 'Hello',
+                    'message': 'check validation.',
+                    'form': FriendForm(),
+            }
+            if (request.method == 'POST'):
+                obj = Friend()
+                form = FriendForm(request.POST, instance=obj)
+                params['form'] = form
+                if ( form.is_valid()):  →   ここでバリデーションチェック
+                    params['message'] = 'OK!'
+                else:
+                    params['message'] = 'no good.'
+            return render(request, 'hello/check.html', params)
+                    
+        
+        
         
         
