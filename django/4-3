@@ -82,6 +82,34 @@
             あればTrue →   「first」「prev」のリンクが表示される
             
             リンク
-                <a href="1">&laquo;first</a>
-                <a href="{{data.previous_page_number">&laquo;prev</a>
+                <a href="{% url 'index' %}">&laquo;first</a>
+                <a href="{% url 'index' % }{{data.previous_page_number">&laquo;prev</a>
+            {{data.previous_page_number}}は、dataのメソッドで、前のページ番号を返すもの。
+            
+        #現在のページ表示
+            [{{data.number}}/{{data.paginator.num_pages}}]
+            現在のページは、dataの「number」という属性で得ることができる。また、アクセスして取得したレコードが全部で何ページ分あるかは、
+            data.paginatorの「num_pages」という属性で得ることができる。
+            data.paginatorは、dataに収められているPaginatorインスタンス。
+            dataは、Paginatorのget_pageメソッドで取り出したセットだが、その中にもチャット使ったPaginatorインスタンスが収めてある。
+        
+        #次のページの移動
+            {% if data.has_next %}
+                ここにリンクを用意
+            {% endif %}
+            
+            「has_next」は、次のページがあるかどうかチェックするメソッド。
+            Trueならば、まだ次のページが残っている、Falseならばもうない（一番最後のページ）。
+            
+            リンク
+                <a href="{% url 'index' %}{{data.next_page_number}}">next&raquo;</a>
+                <a href="{% url 'index' %}{{data.paginator.num_pages}}">last&raquo;</a>
+            {{data.next_page_number}}は、dataのメソッドで、次のページ番号を返すもの
+            また、最後のページへの移動は{{data.paginator.num_pages}}使う。
+            
+        #ページネーションは表示の基本
+           本格的なwebアプリでは、データはページネーションして表示するのが基本（よほど保存しておくレコードの数が少ない場合を除いては）。
+           実際にwebアプリを作るときは、必ずページネーションを使う。
+           
+            
             
