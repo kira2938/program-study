@@ -83,10 +83,69 @@
             ここで、「ManyToManyField」が、そのためのクラス。これに主テーブルのモデルを引数に指定して項目として用意しておく。
         
         #1対1、多対多の「主」テーブルとは
+            従テーブル側のモデルにリレーションシップのための項目を用意しておく。
+            問題は、「どっちのテーブルが『主』なのか？」。
+            1対多の場合、「1の側が主、多の側が従」で、1対1や多対多の場合、どっちが主なのかわかりにくい。
+            わかりにくい場合は、「なくてもいいのはどっちか」を考える。「こっちは必ず用意される」「こっちはなくてもいい」という違いが分かれば、
+            必ず用意するべき側が「主」、そうでない側は「従」となる。
+    
+    #メッセージ投稿のシステムを考える
+        既に、Friendで利用者のテーブルは用意してある。あとは、投稿メッセージのテーブルを用意する
+        1人の利用者は、いくつもメッセージを投稿することができるので、「1対多」の関係になる。投稿者が主テーブル、メッセージが従テーブルとなる。
+ 、     
+        #メッセージテーブルを設計する
+            タイトル：タイトルのテキスト
+            コンテンツ：これが投稿するメッセージ
+            投稿日時：投稿した日時
             
+    #Messageモデル作成   →   アプリ名/models.pyに追記
+        class Message(models.Model):
+            friend = models.ForeignKey(Friend, on_delete=models.CASCADE)
+            title = models.CharField(max_length=100)
+            content = models.CharField(max_length=300)
+            pub_date = models.DateTimeField(auto_now_add=True)
+            
+            def __str__(self):
+                return '<Message:id=' + str(self.id) + ', ' + self.title + '(' + str(self.pub_date) + ')>'
                 
-            
-            
-            
-            
-            
+            class Meta:
+                ordering = ('pub_data',)
+                
+        friend：ForeignKeyの項目。これで、関連するFriendの情報を設定する。on_deleteは、削除する際の設定で、これはmodels.CASCADEを指定すると
+                覚えてしまってOKです。
+        title：タイトルのテキストを保管するためのもの。max_lengthで最大文字数を100にしている。
+        content：コンテンツを保管するためのもの。これが、メッセージ本体、max_lengthで最大300文字に設定
+        pub_date：投稿した日時を保管する。auto_now_addというのは、自動的に値を設定するためのもの。
+        
+       この他、__str__メソッドでテキスト表示を用意している。
+       また、「Meta」というクラスはクラスの基本的な設定などを行う。ここｒ￥でorderingという値は並び順の情報を設定するもので、
+       pub_date順に並べるように設定している。
+       
+   #マイグレーション実行
+        作成したモデルをマイグレーションする。
+        python manage.py makemigrations アプリ名    →   アプリ名/migrationsに0002_message.pyが作成されたのか確認
+        確認出来たら、マイグレーションを実行  →   python manage.py migrate
+    
+    #admin.pyの修正    →   アプリ名/admin.pyに追記
+        マイグレーションができたら管理ツールに登録。
+        
+        from django.contrib import admin
+        from .models import Friend, Message
+        
+        admin.site.register(Friend)
+        admin.site.register(Message)
+        
+    #管理ツールでMessageを使用
+        サーバーを立ち上げ、http://localhost:8000/admin　から使用可能。
+        
+    #Messageページを作成  →   アプリ名/urls.pyに追記
+        path('message/', views.message, name='message'),
+        path('message/<int:page>', views.message, name='message')
+        
+        
+    
+       
+        
+ 
+ 
+ 
