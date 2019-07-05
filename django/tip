@@ -1,0 +1,7 @@
+#adminのパスワードを忘れた時
+    python manage.py shell
+    from django.contrib.auth.models import User
+    users = User.objects.all()
+    user = users[0]
+    user.set_password('password')
+    user.save()
