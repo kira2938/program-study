@@ -1,0 +1,181 @@
+### Section5-1 ミニSNSを作ろう！
+    #ミニTwitterモドキを作ってみる
+        今回作るアプリの機能
+            ●ログイン機能
+                管理ツールでよーざーを登録しておき、そのユーザーでログインし使う
+            ●グループとフレンド
+                誰か知り合いの投稿を見たければ、そのひとをフレンドとして登録する。登録してあるフレンドは、グループにまとめて管理する。
+            ●投稿とシェア
+                メッセージ投稿は、グループに対して行う。また誰かが投稿したものをシェアする投稿もできる。
+            ●publicグループ
+                すべての利用者に公開されるpublicグループを用意してある。このグループに投稿するとすべての人に表示される。
+            ●Good機能
+                「いいね」ボタン。投稿にある「Good!」ボタンを押すと、「いいね」することができる。
+        
+        #まずはログイン
+            http://localhost:8000/sns/というアドレスにする。ここであらかじめ登録してあるユーザー名とパスワードを入力するとログインできる。
+            
+        #トップページの表示
+            ログインすると、/snsの画面が現れる。このページでは一番上にメニューのリンクがあり、その下にログインしているユーザー名が表示されている。
+            その下に、「Search」と「Group」という表示があり、その下に投稿されたメッセージが表示される。
+            アクセスした時、自分が見ることのできるメッセージが一覧表示される。これは、自分がフレンド登録しているユーザーが、自分を含むグループに
+            投稿したものすべて。フレンド登録していても、その人が自分を含んでいないグループに投稿したものは表示されない。
+            ということは、自分が知り合いを入れてあるグループにメッセージを投稿しても、相手が自分をフレンド登録していなければそのメッセージは相手に
+            表示されない、ということ。
+            このへんは「登録してなくても自分宛手のものは表示される」という方式もあり、どちらが正しいともいえない。どういうものが表示されるかは、
+            そのシステムの設計思想次第。今回は「お互いに登録して初めて表示される」というシステム。
+            
+        #グループごとの表示
+            「Group」のところにｈ、自分が作成したグループがチェックボックスとして表示される。ここで、見たいグループのチェックをONにして「update」
+            ボタンを押すと、それらのグループに含まれているユーザーの投稿だけが表示される。
+            
+        #検索による表示
+            「Search」にある入力フォームにテキストを書いて検索すると、自分が見られるメッセージの中から、送信したテキストをメッセージに含むものだけを
+            検索して表示。
+            
+        #フレンド登録とGood!
+            表示される投稿の右下には「add friend」というリンクがあり、これをクリックすると、そのユーザーがフレンドに登録される。また、「Good!」という
+            ボタンをクリックすると、いわゆる「いいね」をすることができる。
+            メッセージの左下には、シェアされた数とgoodされた数が表示される。
+            
+        #Postで投稿する
+            上部にあるメニューから「Post」リンクをクリックすると、投稿ページに移動。メッセージを記入し、投稿先のグループを選択してから送信すると、
+            そのグループにメッセージが投稿される。
+            
+        #シェア投稿もできる
+            トップページで表示されるメッセージの右下には、「share」というボタンがついている。このボタンをクリックすると、シェア投稿のページに移動。
+            ここでコメントを書き、グループを選んで投稿すると、シェアした投稿が組み込まれた形でメッセージが投稿される。
+            
+        #グループとフレンドの管理
+            上部のメニューから「Groups」リンクをクリックすると、グループとフレンドの管理ページに移動する。
+            
+            ●Groupsメニュー
+                Groupsはプルダウンメニュー。ここにグループの一覧が表示される。設定したいグループを選び、「select members」ボタンを押すと、
+                その下の「Friend」のチェック状態が更新される。
+                
+            ●Friendチェックボックス
+                現在登録されているフレンドのユーザー名がチェックボックスで表示される。Groupsメニューでグループを選ぶと、そのグループに追加されている
+                ユーザーのちぇっくがONになる。
+                更に、グループに追加したいユーザーのチェックをONにして「set members」ボタンを押すと、チェックをONにしてあるユーザーがすべて
+                グループに追加される。
+                ただし、チェックをOFFにしてグループから除くことはできない。フレンド登録したユーザーは、必ずどこかのグループに属していなければいけない
+                ため、グループから取り除く処理は行わない。別のグループに追加すると、現在のグループからは自動的に取り除かれる。
+                
+            ●Groupの作成
+                「新しいグループの登録」には、Group nameという入力フィールドが１つだけ用意されてる。ここでグループ名を記入して送信すると、新しい
+                グループが作成される。
+                
+    #SNSアプリケーションを追加
+        ターミナルからアプリを作成   →   プロジェクトで python manage.py startapp アプリ名
+        アプリを登録  →   プロジェクト内のsettings.pyにアプリ名を記述 
+        
+    #アプリを設計
+        ・アプリの機能の洗い出し。どんな機能が必要になるかを全部書き出していく。
+        ・データベース設計。どんな情報を保存するかを洗い出し、それらを保管するためのテーブルを接敵していく。
+        ・各ページの設計。洗い出したアプリの機能とデータベースのテーブルをもとに、どういうページを用意し、そこにどんな機能を持たせるかを考えていく。
+        
+    #データベースを設計
+        ●ユーザーアカウント：特に作成しない。Djangoには、データベーステーブルの管理機能がある。これには、ユーザーアカウントの管理機能も組み込まれて
+        いる。この機能を利用する。
+        ●メッセージ：SNSのもっとも中心となるのが、投稿メッセージのテーブル。これには以下のような項目を用意する
+            ・ownerID：投稿者
+            ・groupID：投稿先のグループ
+            ・content：コンテンツ
+            ・shareID：シェアした投稿のID
+            ・good count：goodした数
+            ・share count：shareした数
+            ・pub_date：投稿日時
+        ●グループ：グループは、製作者とタイトルだけのシンプルなテーブル。グループに追加されるフレンドなどはフレンド側に情報をもたせる。
+            ・ownerID：登録者のアカウント
+            ・title：グループ名
+        ●フレンド：フレンドは、ユーザーとグループのつながりを管理するためのもの。登録した本人、登録先のグループ、登録されるユーザーの情報が管理される。
+            ・ownerID：登録者のカウント
+            ・userID：バインドされるユーザーアカウント
+            ・groupID：登録されているグループID
+        ●good：メッセージに対する「いいね」情報。「いいね」したユーザーと、いいねしたメッセージを管理する。
+            ・ownerID：goodしたユーザーのID
+            ・messageID：goodしたメッセージのID
+        
+    #モデルを作成 →   アプリ名/models.pyに記述
+        from django.db import midels
+        from django.contrib.auth.models import User
+        
+        #Message class
+        class Message(models.Model):
+            owner = models.ForeignKey(User, on_delete = models.CASCADE, related_name = 'message_owner')
+            group = models.ForeignKey('Group', on_delete = models.CASCADE)
+            content = models.TextField(max_length = 1000)
+            share_id = models.IntegerField(default = -1)
+            good_count = models.IntegerField(default = 0)
+            share_count = models,IntegerField(default = -1)
+            pub_date = models.DateTimeField(auto_now_add = True)
+            
+            def __str__(self):
+                return str(self.content) + ' (' + str(self.owner) + ')'
+                
+            def get_share(self):
+                return Message.objects.get(id = self.share_id)
+                
+            class Meta:
+                ordering = ('-pub_date',)
+                
+        #Group class
+        class Group(models.Model):
+         owner = models.ForeignKey(User, on_delete = models.CASCADE, relatedd_name = 'group_owner')
+         title = models.CharField(max_length = 100)
+         
+         def __str__(self):
+            return self.title
+            
+        #Friend class
+        class Friend(models.Model):
+            owner = models.ForeignKey(User, on_delete = models.CASCADE, related_name = 'friend_owner')
+            user = models.ForeignKey(user, on_delete = models.CASCADE)
+            group = models.ForeignKey(Group, on_delete = models.CASCADE)
+            
+        def __str__(self):
+            return str(self.user) + ' (group:"' + str(self.group) + '")'
+            
+        #Good class
+        class Good(models.Model):
+            owner = models.ForeignKey(User, on_delete = models.CASCADE, related_name = 'good_owner')
+            message = models.ForeignKey(Message, on_delete = models.CASCADE)
+            
+            def __str__(self):
+                return 'good for "' + str(self.message) + '" (by ' + str(self.owner) + ')'
+                
+        #モデルのスクリプトについて
+            ●Messageクラス
+                ownerとgroupが、models.ForeignKeyでほかのモデルと連携している、また、Metaクラスで並び順のorderingの設定をしている、よく見ると、
+                ordering = ('-pub_date',)となっている。'pub_date'ならば、pub_dateの小さい側（古い順）の並び順になるが、'-pub_date'と頭に
+                マイナス記号を付けることで、逆順（新しい順）にできる。
+                また、このMessageでは、get_shareというメソッドを追加してある。このMessageのshare_idで設定されているMessage（シェア元のメッセージ）
+                を取得して返すもので、テンプレートでの表示で使用している。
+            ●Groupクラス
+                ownerにmodels.ForeignKeyで設定してモデルと連携している。タイトルはCharfieldを使っている。
+            ●Friendクラス
+                owner、user、groupの3つの項目すべてがmodels.ForeignKeyで関連するほかのモデルと連携している。クラス事態はほかに項目を持たない、
+                シンプルな形。
+            ●Goodクラス
+                ownerとmessageのmodels.ForeignKeyが用意されている。これも両者の関連を示すだけのモデルなのでとてもシンプル。
+            
+    #マイグレーション
+        ターミナルから python manage.py makemigrations アプリ名
+        完了したら実行 python manage.py migrate
+        
+    #admin.pyにアプリ名のテーブル登録   →   プロジェクト/アプリ名/admin.pyに記述
+        from django.contrib import admin
+        from .model import Message, Friend, Group, Good
+        
+        admin.site.register(Message)
+        admin.site.register(Friend)
+        admin.site.register(Group)
+        admin.site.register(Good)
+        
+    #管理ツールでユーザー登録   →   サーバーを立ち上げユーザーを登録
+    
+    #public Groupを用意    →   グループで作成
+
+        
+        
+
