@@ -1,0 +1,103 @@
+### Section5-2 スクリプトを作成
+    #フォーム作成
+    from django import forms
+    from.models import Message, Group, Friend, Good
+    from django.contrib.auth.models import User
+
+
+    #Messageのフォーム
+    class MessageForm(forms.ModelForm):
+        class Meta:
+            model = Message
+            fields = ['owner', 'group', 'content']
+
+    #Groupのフォーム
+    class GroupForm(forms.ModelForm):
+        class Meta:
+            model = Group
+            field = ['owner', 'title']
+
+    #Friendのフォーム
+    class FriendForm(forms.ModelForm):
+        class Meta:
+            model = Friend
+            field = ['owner', 'user', 'group']
+
+    #Goodのフォーム
+    class GoodForm(forms.ModelForm):
+        class Meta:
+            model = Good
+            field = ['owner', 'message']
+
+    #検索フォーム
+    class SearchFOrm(forms.Form):
+        search = forms.CharField(max_length=100)
+
+    #Groupのチェックボックスフォーム
+    class GroupCheckForm(forms.Form):
+        def __init__(self, user, *args, **kwargs):
+            super(GroupCheckForm, self).__init__(*args, **kwargs)
+            public = User.objects.filter(username='public').first()
+            self.fields['groups'] = forms.MultipleChoiceField(
+                    choices = [(item.title, item.title) for item in Group.objects.filter(owner__in = [user,public])],
+                    widget = forms.CheckboxSelectMultiple(),
+            )
+
+    #Groupの選択メニューフォーム
+    class GroupSelectForm(forms.Form):
+        def __init__(self, user, *args, **kwargs):
+            super(GroupSelectForm, self).__init__(*args, **kwargs)
+            self.fields['groups'] = forms.ChoiceField(
+                    choices = [('-', '-')] + [(item.title, item.title) for item in Group.objects.filter(owner = user)],
+            )
+
+    #Friendチェックボックスフォーム
+    class FriendsForm(forms.Form):
+        def __init__(self, user, friends=[], vals=[], *args, **kwargs):
+            super(FriendsForm, self).__init__(*args, **kwargs)
+            self.fields['friends'] = forms.MultipleChoiceField(
+                    choices = [(item.user, item.user) for item in friends],
+                    widget = forms.CheckboSelectMultiple(),
+                    initial = vals
+            )
+
+    #Group作成フォーム
+    class CreateGroupForm(forms.Form):
+        group_name = forms.CharField(max_length=50)
+
+    #投稿フォーム
+    class PostForm(forms.Form):
+        content = forms.CharField(max_length=500, widget = forms.Textarea)
+        def __init__(self, user, *args, **kwargs):
+            super(PostForm, self).__init__(*args, **kwargs)
+            public = User.objects.filter(username='public').first()
+            self.fields['groups'] = forms.ChoiceField(
+                    choices = [('-', '-')] + [(item.title, item.title) for item in Group.objects.filter(owner__in = [user, public])],
+            )
+            
+    #GroupCheckFormについて
+        ModelForm以外のもの(forms.Formの派生クラス)がポイント。
+        #__init__による初期化処理
+            def __init__(self, user, *args, **kwargs):
+        
+        ここでは、superで基底クラスの__init__メソッドを呼び出す。
+            super(GroupCheckForm, self).__init__(*args, **kwargs)
+        
+        初期化の処理は、このクラスだけにしかないとは限りないので、基底クラス（継承する元になっているクラス）みも__init__が用意されていて、
+        そこに初期化処理が用意されているかかもしれない。
+        そこで、__init__メソッドの最初に、基底クラスの__init__を呼び出して初期化処理を実行させておく。super関数は、第1引数にクラス、第2引数に
+        インスタンス自身（self）を指定して呼び出すことで、そのインスタンスの基底クラスのインスタンスのあるメソッドを呼び出す。
+        
+            public = User.objects.filter(username='public').first()
+        publicのUserを取得する。これはfilter(username='public')で検索をし、その一番最初のものをfirstで取り出す。
+        
+            self.fields['groups'] = forms.MultipleChoiceField(
+                choices = [(item.title, item.title) for item in Group.objects.filter(owner__in = [user,public])],
+                widget = forms.CheckboxSelectMultiple(),
+            )
+        これが、一番難関。self.field['groups']というのは、このインスタンスのgroupsフィールド。つまり、ここにフィールドを設定することで、クラスに
+        groups変数を用意したのと同じことができる。
+        ここでは、MultipleChoiceFieldを設定している。これは複数の選択可能な選択項目のフィールド。choicesに選択項目を用意し、widgetには
+        CheckboxSelectMultipleを指定。これは、複数項目をすべてチェックボックスとして用意するウィジェット。
+        
+        
