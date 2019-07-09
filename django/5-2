@@ -100,4 +100,63 @@
         ここでは、MultipleChoiceFieldを設定している。これは複数の選択可能な選択項目のフィールド。choicesに選択項目を用意し、widgetには
         CheckboxSelectMultipleを指定。これは、複数項目をすべてチェックボックスとして用意するウィジェット。
         
+        #リスト内包表記    →   [(タプル) for ○○ in ○○]    →    [変数など for横文] 
+            choicesの[]はリスト。その中にはタプルとfor横文が書かれている。これが「リスト内包表記」というpython横文。
+            変数などの後にfor横文を記述している。このforから次々と値を取り出したものが、そのまま前にある変数に代入され、それがリストの項目として
+            酔いされている。つまり、forによる繰り返しでリストの項目を生成する。
+           
+    #GroupSelectFormについて
+        利用者のGroupをメニューに持つプルダウンメニューのフォームを生成する。これも__init__による初期化処理で項目を作成する。
+            super(GroupSelectForm, self).__init__(*args, **kwargs)
+            self.fields['groups'] = forms.ChoiceField(
+                    choices = [('-', '-')] + [(item.title, item.title) for item in Group.objects.filter(owner = user)],
+            )
+        self.fields['groups']で、groupsという項目を作成してChoiceFieldを設定し、プルダウンメニューを用意。ここでの表示項目は、choicesでリスト
+        として用意しているため、ここでもリスト内包表記を利用。
+            
+            for item in Group.objects.filter(owner = user)
+        Groupから、ownerがuser（利用者のUser）であるものをまとめて取り出している。
+        ここから順にGroupを取り出し、そとtitleの値をタプルにしてメニューの項目として追加している。
+    
+    #FriendsFormについて
+        基本的なやり方は同じ。
+            self.fields['friends'] = forms.MultipleChoiceField(
+                    choices = [(item.user, item.user) for item in friends],
+                    widget = forms.CheckboSelectMultiple(),
+                    initial = vals
+            )
+        「initial」という値は、初期値の設定で、項目名のリストを指定すると、そこにある項目のチェックがONの状態で表示されるようになる。
         
+    #PostFormについて
+        通常の投稿とシェア投稿で利用されるフォーム。
+            content = forms.CharField(max_length=500, widget = forms.Textarea)
+            def __init__(self, user, *args, **kwargs):
+                super(PostForm, self).__init__(*args, **kwargs)
+                public = User.objects.filter(username='public').first()
+                self.fields['groups'] = forms.ChoiceField(
+                        choices = [('-', '-')] + [(item.title, item.title) for item in Group.objects.filter(owner__in = [user, public])],
+                )
+        Charfieldはwidget = forms.Textareaという値が用意されている。<textarea>の表示を使うことを設定する。
+        publicのUserを変数publicに取り出しして、self.fields['groups']にChoiceFieldを設定している。
+        
+        #ダイナミックに項目を作るには__init__
+            今回のサンプルでは、あらかじめ項目を変数として用意しておくのではなく、フォームのインスタンスを作成する際に項目を生成させている。
+            これには、__init__を活用する。フォームの項目は、self.fieldsというところにまとめられている。self.fields['○○']という値にフィールドを
+            設定することで、指定の名前の項目を追加できる。
+            
+    #urls.py作成  →   アプリ名に新規ファイル作成
+        from django.urls import path
+        from . import views
+
+        urlpatterns = [
+                path('', views.index, name='index'),
+                path('groups', views.groups, name='groups'),
+                path('add', views.add, name='add'),
+                path('creategroup', views.creategroup, name='creategroup'),
+                path('post', views.post, name='post'),
+                path('share/<int:share_id>', views.share, name='share'),
+                path('good/<int:good_id>', views.good, name='good'),
+        ]
+        
+        #プロジェクト名/urls.pyに追記
+            path('アプリ名/', include('アプリ名.urls')),
