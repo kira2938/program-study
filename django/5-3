@@ -1,0 +1,353 @@
+### Section5-3 テンプレートを作ろう
+    #テンプレートフォルダを用意  →   アプリ名/templatesフォルダ作成/アプリ名フォルダ作成/テンプレートhtmlおく
+        layout.html →   全体のレイアウトを作成するテンプレート
+        index.html  →   indexページのレイアウト
+        group.html  →   groupページのレイアウト
+        post.html   →   postページのレイアウト
+        share.html  →   shareページのレイアウト
+        
+        #レイアウト用テンプレート
+            各ページで使うテンプレート他に「レイアウトのテンプレート」を用意している。これは、すべてのテンプレートの土台となるもの。Djangoのテンプレート
+            は「継承」をサポートしている。これはクラスの継承などと同じで既にあるテンプレートの内容をそのまま受け継いで新しいテンプレートを作ること。
+            継承元になるテンプレートは、「ブロック」というものを用意している。これは、何かの値がはめ込まれる「穴」のようなもの。このテンプレートを継承
+            したテンプレートでは、継承元にある穴(ブロック)にはめ込むコンテンツを用意しておく。すると、その穴(ブロック)にそのコンテンツがはめ込まれた
+            形でページがレイアウトされる。
+            
+    #layout.htmlを作成 →   templates/アプリ名/layout.html作成
+        {% load static %}
+        <!doctype html>
+        <html lang="ja">
+        <head>
+            <meta charset="utf-8">
+            <title>{% block title %}{% endblock %}</title>
+            <link rel="stylesheet" type="text/css" 
+                href="{% static 'sns/style.css' %}" />
+        </head>
+        <body>
+            <div class="body_content">
+            <div class="body_content_inner">
+                <table class="login_table" width="100%">
+                <tr><th width="150px">menu</th><td>
+                <table class="login_table_inner">
+                <tr>
+                <td><a href="{% url 'index' %}">top</a></td>
+                <td><a href="{% url 'post' %}">post</a></td>
+                <td><a href="{% url 'groups' %}">group</a></td>
+                </tr>
+                </table>
+                </td></tr>
+                <tr><th width="150px">login user:</th><td>"{{login_user}}"</td></tr>
+                </table>
+                <div class="header">{% block header %}{% endblock %}</div>
+                <div class="content">{% block content %}{% endblock %}</div>
+                <div class="footer">
+                <hr>
+                <div>
+                <span style="float:left;font-weight:bold;"><a href="/admin/logout?next=/sns/">[ logout ]</a></span>
+                <span style="float:right">copyright 2018 SYODA-Tuyano.</span>
+                </div>
+                </div>
+            </div>
+            </div>
+        </body>
+        </html>
+        
+            {% block ○○ %}
+            {% endblock %}
+        これが、テンプレートに空けられた「穴」で「ブロック」。このテンプレートを継承したテンプレートでは、このブロック部分にはめ込むコンテンツを
+        用意する。このテンプレートで用意されているブロックは以下の3つ。
+            title   →   タイトルを表示するブロック
+            header  →   ページ上部にある、タイトルなどのヘッダー情報を表示するエリア
+            content →   ページ中央にある、ページのコンテンツを表示するエリア
+        この他、{{login_user}}でログインユーザー名を表示する変数などが用意されている。
+        
+    #index.htmlを作成 →   templates/アプリ名/index.html作成
+        {% extends 'sns/layout.html' %}
+
+        {% block title %}Index{% endblock %}
+
+        {% block header %}
+        <h1>Sns</h1>
+        <p class="caption">※グループのチェックをONにしてupdateすると、そのグループに登録されている利用者のメッセージだけが表示されます。</p>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endblock %}
+
+        {% block content %}
+        <form action="{% url 'index' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="__search_form__">
+        {{search_form}}
+        <button>Search</button>
+        </form>
+        <hr>
+        <form action="{% url 'index' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="__check_form__">
+        {{check_form}}
+        <button>update</button>
+        </form>
+        {% for item in contents %}
+        <hr>
+        <p class="message_public">
+        {% if item.group.title == 'public' %}
+        [public]
+        {% endif %}</p>
+        <p class="message_content">{{item.content}}</p>
+        <p class="message_date"> ({{item.pub_date}})</p>
+        {% if item.share_id > 0 %}
+            <hr class="share_line">
+            <p class="share_item_content">{{item.get_share}}</P>
+        {% endif %}
+        <p class="message_owner">
+            <span class="message_counter">share={{item.share_count}} good={{item.good_count}}</span>
+            "{{item.owner}}" (<a href="{% url 'add' %}?name={{item.owner}}">add friend</a>)
+            <a href="{% url 'share' item.id %}"><button>share</button></a>
+            <a href="{% url 'good' item.id %}"><button>good!</button></a>
+        </p>
+        {% endfor %}
+        {% endblock %}
+
+            {% extends 'sns/layout.html' %}
+        継承を示すクラス。テンプレートの継承は、{% extends ○○ %}というタグで設定される。
+        
+            {% block title %}Index{% endblock %}
+        レイアウト用テンプレートに用意したのと同じ、{% blcok ○○ %}と{% endblock %}が使われている。この2つのタグの間に書かれたものが、そのまま
+        継承元のテンプレートのタグ部分にはめ込まれる。
+        
+        #横文タグについて
+            他に{% %}を使ったタグがある。「制御横文に相当するタグ」
+                {% if 条件 %}
+                    条件がTrueのとき表示する内容
+                {% endif %}
+            if文。条件が正しければ、その後の{% endif %}まで。
+            
+                {% for 変数 in リストなど %}
+                    繰り返し表示する内容
+                {% endfor %}
+            for文。リストなど用意して、それから順に値を取り出して」は変数に設定して、{% endfor %}までの内容を書き出していく。
+        
+        #システムメッセージの表示
+            直接関係ないが、メッセージフレームワークによるシステムメッセージを表示するタグも用意されている。
+                {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            {% if messages %}でmessagesがある場合に表示を行うようにしてある。
+            
+    #post.htmlを作成 →   templates/アプリ名/post.html作成
+        {% extends 'sns/layout.html' %}
+
+        {% block title %}Post{% endblock %}
+
+        {% block header %}
+        <h1>Post</h1>
+        <p  class="caption">※投稿先のグループを選択し、メッセージを投稿します。</p>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endblock %}
+
+        {% block content %}
+        <form action="{% url 'post' %}" method="post">
+        {% csrf_token %}
+        <table>
+        {{form.as_table}}
+        <tr><td></td><td><button>Post!</button></td></tr>
+        </table>
+        </form>
+        {% endblock %}
+        
+    #share.html作成 →   templates/アプリ名/share.html作成
+        {% extends 'sns/layout.html' %}
+
+        {% block title %}Share{% endblock %}
+
+        {% block header %}
+        <h1>Share</h1>
+        <p  class="caption">※投稿先のグループを選択し、下のメッセージをシェアします。</p>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"
+                {% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endblock %}
+
+        {% block content %}
+        <p class="share_content">{{share.content}} ({{share.owner}})</p>
+        <form action="{% url 'share' share.id %}" method="post">
+        {% csrf_token %}
+        <table>
+        {{form.as_table}}
+        <tr><td></td><td><button>Share!</button></td></tr>
+        </table>
+        </form>
+        {% endblock %}
+
+    #groups.htmlを作成 →   templates/アプリ名/share.html作成
+        {% extends 'sns/layout.html' %}
+
+        {% block title %}Grooups{% endblock %}
+
+        {% block header %}
+        <h1>Group</h1>
+        <p class="caption">※グループを選択してselect memberすると、そのグループに登録されている利用者がONになります。
+        利用者のチェックをONにしてset memberすると、ONにしてある利用者がグループに追加されます。</p>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endblock %}
+
+        {% block content %}
+        <form action="{% url 'groups' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="__groups_form__">
+        {{groups_form}}
+        <button>select members</button>
+        </form>
+        <hr>
+        <form action="{% url 'groups' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="__friends_form__">
+        <input type="hidden" name="group" value="{{group}}">
+        {{friends_form}}
+        <button>set members</button>
+        </form>
+
+        <hr>
+        <p>※新しいGroupの登録</p>
+        <form action="{% url 'creategroup' %}" method="post">
+        {% csrf_token %}
+        {{create_form}}
+        <button>create new group</button>
+        </form>
+        {% endblock %}
+
+    #スタイルシートを用意する   →   プロジェクト名/static/アプリ名/style.css作成
+        body {
+            background-color:#ddf;
+            color:gray;
+            font-size:14pt;
+        }
+        .body_content {
+            width:800px;
+            background-color:white;
+        }
+        .body_content_inner {
+            padding:50px;
+        }
+        h1 {
+            color:red;
+            opacity:0.2;
+            font-size:72pt;
+            margin-top:0px;
+            margin-bottom:0px;
+            text-align:right;
+            line-height: 70px;
+        }
+        p {
+            margin:10px;
+        }
+        a {
+            color:blue;
+            text-decoration: none;
+        }
+
+        table {
+            margin:10px;
+            font-size:14pt;
+        }
+        table tr th {
+            background-color:#99f;
+            color:white;
+            padding:2px 10px;
+            border-size:2px;
+        }
+        table tr td {
+            background-color:#f6f6f6;
+            color:#666;
+            padding:2px 10px;
+            border-size:2px;
+        }
+        .footer {
+            font-size:9pt;
+            margin-top:50px;
+            margin-bottom:100px;
+        }
+        .login_table {
+            position: fixed;
+            left:0px;
+            top:0px;
+            width:800px;
+            margin:8px;
+        }
+        .login_table_inner {
+            padding:1px;
+            margin:0px;
+        }
+        .login_table_inner tr th {
+            padding:0px;
+            margin:0px;
+        }
+        .login_table_inner tr td {
+            padding:0px 10px;
+            margin:0px;
+        }
+        .caption {
+            font-size:10pt;
+        }
+        .messages {
+            border: solid 3px #ccf;
+            padding: 10px 50px;
+        }
+        .message_date {
+            text-align:left;
+            font-size:10pt;
+        }
+        .message_owner {
+            text-align:right;
+            font-size:12pt;
+            font-weight:bold;
+            margin:30px 10px 0px 10px;
+        }
+        .message_public {
+            font-size:12pt;
+            font-weight:bold;
+            color:#69f;
+        }
+        .message_counter {
+            float:left;
+            font-weight:normal;
+            font-size:12pt;
+            color:#f66;
+        }
+        .share_content {
+            border: solid 3px #ddf;
+            padding: 10px 20px;    
+        }
+        .share_line {
+           border: 1px solid #e0e0ff;
+        }
+        .share_item_content {
+            margin:0px 50px;
+            font-size:12pt;
+        }
