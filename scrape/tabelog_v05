@@ -199,7 +199,7 @@ browser_path = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 chromedriver_path = r'C:\Users\study\Desktop\chromedriver_win32\chromedriver.exe' 
 options = Options()
 options.binary_location = browser_path # chromeのパスを指定
-#options.add_argument('--headless') # ヘッドレスモードを有効にする（コメントアウトするとブラウザ表示）
+options.add_argument('--headless') # ヘッドレスモードを有効にする（コメントアウトするとブラウザ表示）
 driver = webdriver.Chrome(chrome_options = options, executable_path=chromedriver_path) # webdriverのパス指定
 
 # サーバーに負担をかけないように待機 implicitly_wait(秒)
