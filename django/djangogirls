@@ -41,4 +41,193 @@
             
         #スーパーユーザー作成 →   python manage.py createsuperuser
         
+        #プロジェットにurlを追加 →   mysite/urls.pyに記述
+            from django.contrib import admin
+            from django.urls import path, include
+
+            urlpatterns = [
+                path('admin/', admin.site.urls),
+                path('', include('blog.urls')),
+            ]
+        #アプリケーションにurlを追加    →   blog/urls.pyを作成
+            from django.urls import path
+            from . import views
             
+            urlpatterns = [
+                path('', views.post_list, name='post_list'),
+            ]
+        
+        #ビューを作成 →   blog/views.pyに記述
+            from django.shortcuts import render
+            from django.utils import timezone
+            from .models import Post
+            
+            def post_list(request):
+                posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
+                return render(request, 'blog/post_list.html', {})
+        
+        #HTMLを作成    →   blog/templates/blog/post_list.html作成
+            <div>
+                <h1><a href="/">Django Girls Blog</a></h1>
+            </div>
+
+            {% for post in posts %}
+                <div>
+                    <p>published: {{ post.published_date }}</p>
+                    <h1><a href="">{{ post.title }}</a></h1>
+                    <p>{{ post.text|linebreaksbr }}</p>
+                </div>
+            {% endfor %}
+        
+        #css保存場所    →   blog/static/css/style.css
+        #HTMlのテンプレートを拡張し基本テンプレートを作成    
+            <body>
+                <div class="page-header">
+                    <h1><a href="/">Django Girls Blog</a></h1>
+                </div>
+                <div class="content container">
+                    <div class="row">
+                        <div class="col-md-8">
+                        
+                        {% extends 'blog/base.html' %}
+                        {% block content %}
+                            {% for post in posts %}
+                                <div class="post">
+                                    <div class="date">
+                                        {{ post.published_date }}
+                                    </div>
+                                    <h1><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></h1>
+                                    <p>{{ post.text|linebreaksbr }}</p>
+                                </div>
+                            {% endfor %}
+                        {% endblock %}
+                        </div>
+                    </div>
+                </div>
+            </body>
+        
+        #アプリケーション拡張
+            #urlを追記 →   blog/urls.pyに追記
+                urlpatternsにpath('post/<int:pk>/', views.post_detail, name='post_detail'),追記
+            
+            #views.py修正
+                from django.shortcuts import render, get_object_or_404
+                
+                def post_detail(reqeust, pk):
+                    post = get_object_or_404(Post, pk=pk)
+                    return render(request, 'blog/post_detail.html', {'post': post})
+
+        #post_detailページ作成   →   blog/templates/blog/post_detail.html作成
+            {% extends 'blog/base.html' %}
+
+            {% block content %}
+                <div class="post">
+                    {% if post.published_date %}
+                        <div class="date">
+                            {{ post.published_date }}
+                        </div>
+                    {% endif %}
+                    <h1>{{ post.title }}</h1>
+                    <p>{{ post.text|linebreaksbr }}</p>
+                </div>
+            {% endblock %}
+            
+            
+            
+        #フォーム作成 →   blog/forms.pyに作成
+            from django import forms
+            from .models import Post
+            
+            class PostForm(forms.ModelForm):
+                class Meta:
+                    model = Post
+                    fields = ('title', 'text')
+                    
+        #フォームとページのリンク   →   blog/templates/blog/base.htmlに追記
+            <body>
+                <div class="page-header">
+                    <a href="{% url 'post_new' %}" class="top-menu"><span class="glyphicon glyphicon-plus"></span></a>
+                    <h1><a href="/">Django Girls Blog</a></h1>
+                </div>
+                <div class="content container">
+                    <div class="row">
+                        <div class="col-md-8">
+                            {% block content %}
+                            {% endblock %}
+                        </div>
+                    </div>
+                </div>
+            </body>
+            
+        #urlを追加 →   blog/urls.pyに追記
+            urlpatternsに追記  →   path('post/new/', views.post_new, name='post_new'),
+            
+        #viewに追記    →   blog/views.pyに追記
+            from .forms import PostForm
+            
+            def post_new(request):
+                form = PostForm()
+                return render(request, 'blog/post_edit.html', {'form': form})
+                
+        #テンプレート作成   →   blog/templates/blog/post_edit.html
+            {% extends 'blog/base.html' %}
+
+            {% block content %}
+                <h1>New post</h1>
+                <form method="POST" class="post-form">{% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="save btn btn-default">Save</button>
+                </form>
+            {% endblock %}
+            
+        #フォームを保存    →   blog/views.py   
+            def post_new(request):
+                if request.method == 'POST':
+                form = PostForm(request.POST)
+                if form.is_valid():
+                    post = form.save(commit=False)
+                    post.author = request.user
+                    post.published_date = timezone.now()
+                    post.save()
+                    return redirect('post_detail', pk=post.pk)
+            else:
+                form = PostForm()
+            return render(render, 'blog/post_edit.html', {'form': form})
+            
+        #post_detailページ作成   →   blog/templates/blog/post_detail.html作成
+            {% extends 'blog/base.html' %}
+
+            {% block content %}
+                <div class="post">
+                    {% if post.published_date %}
+                        <div class="date">
+                            {{ post.published_date }}
+                        </div>
+                    {% endif %}
+                    <a class="btn btn-default" href="{% url 'post_edit' pk=post.pk %}"><span class="glyphicon glyphicon-pencil"></span></a>
+                    <h1>{{ post.title }}</h1>
+                    <p>{{ post.text|linebreaksbr }}</p>
+                </div>
+            {% endblock %}
+            
+        #url追加  →   blog/urls.pyに追記
+            urlpatternsに追加  →   path('post/<int:pk>/edit/', views.post_edit, name='post_edit'),
+        
+        #viewsに追加   →   blog/views.pyに追加
+            def post_edit(request, pk):
+                post = get_object_or_404(Post, pk=pk)
+                if request.method == 'POST':
+                    form = PostForm(request.POST, instance=post)
+                    if form.is_valid():
+                        post = form.save(commit=False)
+                        post.author = reqeust.user
+                        post.published_date = timezone.now()
+                        post.save()
+                        return redirect('post_detail', pk=post.pk)
+                else:
+                    form = PostForm(instance=post)
+                return render(request, 'blog/post_edit.html', {'form': form})
+            
+        
+        
+        
