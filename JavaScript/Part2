@@ -7,4 +7,99 @@
     関数型プログラミング
     
 2-2 表記について
+    print関数
+        var print = alert;
+        または
+        var print = document.write;
+        
+2-3 変数の基礎
+    変数の使い方
+        var foo;    //変数fooを宣言
+        foo = "abc"; //変数fooに文字列値"abc"を代入
+        var foo = "abc"; // 文字列値"abc"を持つ変数fooを宣言
+
+        var foo;
+        foo = "abc";    // 変数fooに文字列値"abc"を代入
+        foo = 123;      // 変数fooに数値123を代入
+        
+        var n = 7;      // 変数nに数値7を代入
+        n + 1;          // 変数nの値を取り出し、1を加算
+        8
+        
+        var foo;
+        print(foo);     // 変数fooの値はundefined値
+        undefined
+        
+    定数
+        const FOO = 7;  // 定数宣言
+        print(FOO);
+        7
+        
+        const FOO = 7;
+        FOO = 8;        // 定数に再代入
+        print(FOO);     // 値は変わらない
+        7
+        
+        const FOO;
+        print(FOO);
+        undefined
+        
+2-4 関数の基礎
+    関数
+        print('1');
+        function f() {      // 関数宣言
+            print('2');
+        }
+        print('3');
+        f();                // 関数呼び出し
+        
+        1
+        3
+        2
+        
+    関数宣言と呼び出し
+        // 関数宣言文の文法
+        function 関数名(引数, 引数, ...) {
+            関数本体
+        }
+        
+        function sum(a, b) {
+            return Number(a) + Number(b);
+        }
+        // 関数sumの呼び出し
+        sum(3, 4);
+        7
+        
+    関数リテラル
+        // 関数リテラル式の方法
+        function(引数, 引数, ...) {
+            関数本体
+        }
+        function 関数名(引数, 引数, ...) {
+            関数本体
+        }
+        
+        関数リテラル式の例
+        var sum2 = function(a, b) {
+            return Number(a) + Number(b);
+        }
+        // 関数sum2の呼び出し
+        sum2(3, 4);
+        7
+        
+        var sum3 = sum;
+        sum3(3, 4);
+        7
+        
+2-5 オブジェクトの基礎
+    // オブジェクトリテラル式の方法
+    { プロパティ名:プロパティ値, プロパティ名:プロパティ値, ...}
     
+    オブジェクトリテラルの例
+    { x:2, y:1 }                                            // プロパティ名が識別子
+    { "x":2, "y":1 }                                        // プロパティ名が文字列値 
+    { 'x':2, 'y':1 }                                        // プロパティ名が文字列値
+    { 1:2, 2:1 }                                            // プロパティ名が数値
+    { x:2, y:1, enable:true, color:{r:255, g:255, b:255} }  // 様々な型のプロパティ値
+        
+        
