@@ -52,5 +52,21 @@
 
 
 ブーリアン型
+    ブーリアン型への型変換(型変換でfalseになる値、これ以外はtrueになる)
+        数値0
+        数値NaN
+        null値
+        undefiend値
+        文字列値''(空文字列値)
+        
+        ex) !!1;                            // true
+            !!'x';                          // true
+            !!0;                            // false
+            !!'';                           // false
+            !!null;                         // false
+    
+    https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+
+
 null型
 undefined型
