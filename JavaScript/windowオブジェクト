@@ -1,0 +1,10 @@
+windowオブジェクトはグローバルオブジェクト
+    https://developer.mozilla.org/ja/docs/Web/API/Window
+    Webブラウザによって表示されているウィンドウそのものに対応するオブジェクト
+    ・navigator
+    ・location
+    ・history
+    ・screen
+    ・frames
+    ・document
+    ・parent, top, self
