@@ -68,5 +68,5 @@
     https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Boolean
 
 
-null型
-undefined型
+null型   →   errorオブジェクト
+undefined型   →   errorオブジェクト
