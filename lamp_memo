@@ -1,0 +1,24 @@
+linux コマンド
+pwd  現在のディレクトリー
+ls 現在のディレクトリーの中にあるディレクトリー
+cd チェンジディレクトリー
+cp copy
+mv move移動、rename
+find -name, -size *????
+touch file create
+rm remove     *-rf(don't use)
+vi linuxのコマンドエディター
+less fileの中身を閲覧（別のウィンドウ）
+cat fileの中身を閲覧（これはdanger）
+head fileの中身の上の部分だけ表示
+grep fileの中身でキーワードを抽出
+tail -f fileの中身の下の部分だけ表示（ログのチェック）
+chmod
+mkdir
+
+
+
+Create - INSERT
+Read - SELECT(データ数が多い時、WHEREとLIMITと使う)
+Update - Update(WHEREとセットで使う)
+Delete - DELETE(WHEREとセットで使う)
