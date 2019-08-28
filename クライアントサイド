@@ -1,0 +1,10 @@
+スタイル
+    スタイル変更方法
+        ・classNameプロパティでclass名を変更する
+        ・classListプロパティでclass名を変更する
+            contains(clazz):class名にclazzが含まれているかどうか
+            add(clazz):class名にclazzを追加する
+            remove(clazz):class名にclazzを削除する
+            toggle(clazz):class名にclazzが含まれている場合は削除、そうでない場合は追加する
+        ・styleプロパティで変更する
+        ・スタイルシートそのものを変更する
