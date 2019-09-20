@@ -1,0 +1,21 @@
+{% extends 'tblog/base.html' %}
+
+{% block content %}
+    <div class="header">
+        <h1>{{ title }}</h1>
+    </div>
+    <div class="contents col-sm">
+        <table class="c-table">
+            <tr><th>エリア: </th><td>{{ obj.area_list }}</td></tr>
+            <tr><th>エリア(英語): </th><td>{{ obj.list_jpen }}</td></tr>
+            <tr><th>リストid: </th><td>{{ obj.list_id }}</td></tr>
+            <form action="{% url 'delete' id %}" method="post">
+            {% csrf_token %}
+            <tr><td><input type="submit" value="削除"></td>
+            </form>
+            <td><a href="{{request.META.HTTP_REFERER}}"><button>戻る</button></a></td></tr>
+        </table>
+    </div>
+    <div class="col-sm"></div>
+    <div class="col-sm"></div>
+{% endblock %}
