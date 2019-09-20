@@ -1,0 +1,9 @@
+{% extends 'tblog/base.html' %}
+
+{% block content %}
+    <div class="header">
+        <h1>{{ title }}</h1>
+        <p>{{ message }}</p>
+        <a href="{{request.META.HTTP_REFERER}}">中止する</a>
+    </div>
+{% endblock %}
