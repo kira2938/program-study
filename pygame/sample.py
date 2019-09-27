@@ -1,4 +1,5 @@
 import pygame
+import math
 
 # 初期化
 pygame.init()
@@ -8,10 +9,9 @@ width, height = 640, 480
 screen = pygame.display.set_mode((width, height))
 
 # イメージ呼び出し
-player = pygame.image.load("resources/images/dude.png")
-# 背景画像呼び出し
-grass = pygame.image.load("resources/images/grass.png")
-castle = pygame.image.load("resources/images/castle.png")
+player = pygame.image.load("resources/images/dude.png") # プレイヤー
+grass = pygame.image.load("resources/images/grass.png") # 背景
+castle = pygame.image.load("resources/images/castle.png") #城
 
 keys = [False, False, False, False]
 playerpos = [100, 100]
@@ -26,12 +26,19 @@ while True:
         for y in range(height//grass.get_height() + 1):
             screen.blit(grass, (x * 100, y * 100))
 
-    screen.blit(castle, (0, 30))
-    screen.blit(castle, (0, 135))
-    screen.blit(castle, (0, 240))
-    screen.blit(castle, (0, 345))
+    screen.blit(castle, (0, 30))   #城1
+    screen.blit(castle, (0, 135))   #城2
+    screen.blit(castle, (0, 240))   #城3
+    screen.blit(castle, (0, 345))   #城4
 
-    screen.blit(player, playerpos)
+    # プレイヤーをマウスで回転
+    position = pygame.mouse.get_pos()
+    angle = math.atan2(
+        position[1] - (playerpos[1] + 32), position[0] - (playerpos[0] + 26))
+    playerrot = pygame.transform.rotate(player, 360 - angle * 57.29)
+    playerpos1 = (playerpos[0] - playerrot.get_rect().width //
+                  2, playerpos[1] - playerrot.get_rect().height // 2)
+    screen.blit(playerrot, playerpos1)
 
     # 画面を再び描く
     pygame.display.flip()
@@ -42,6 +49,7 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             exit(0)
+        #キーボード
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
                 keys[0] = True
@@ -61,7 +69,7 @@ while True:
                 keys[2] = False
             elif event.key == pygame.K_d:
                 keys[3] = False
-
+    #移動範囲
     if keys[0]:
         playerpos[1] = playerpos[1] - 5
     elif keys[2]:
@@ -73,7 +81,7 @@ while True:
 
 # キーボードでイメージを動かす
 # マウスでイメージを開店させる
-# 弓を発射
+# 矢を発射
 # 敵が来る
 # 弓と敵が衝突
 # 残り時間とHPの表示
