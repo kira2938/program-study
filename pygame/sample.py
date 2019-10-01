@@ -4,20 +4,17 @@ import random
 
 # 初期化
 pygame.init()
-
-# 画面作成
 width, height = 640, 480
-screen = pygame.display.set_mode((width, height))
+screen = pygame.display.set_mode((width, height))  # スクリーン生成
 keys = [False, False, False, False]
 playerpos = [100, 100]
 acc = [0, 0]
 arrows = []
 badtimer = 100
 badtimer1 = 0
-badguys = [[640, 100]]
+badguys = [[640, 100], ]
 healthvalue = 194
 pygame.mixer.init()
-
 
 # イメージ呼び出し
 player = pygame.image.load("resources/images/dude.png")  # プレイヤー
@@ -30,9 +27,7 @@ health = pygame.image.load("resources/images/health.png")  # hp
 gameover = pygame.image.load("resources/images/gameover.png")  # gameover
 youwin = pygame.image.load("resources/images/youwin.png")  # youwin
 
-
-
-
+# サウンド
 hit = pygame.mixer.Sound("resources/audio/explode.wav")
 enemy = pygame.mixer.Sound("resources/audio/enemy.wav")
 shoot = pygame.mixer.Sound("resources/audio/shoot.wav")
@@ -56,7 +51,6 @@ while running:
     for x in range(width//grass.get_width() + 1):
         for y in range(height//grass.get_height() + 1):
             screen.blit(grass, (x * 100, y * 100))
-
     screen.blit(castle, (0, 30))  # 城1
     screen.blit(castle, (0, 135))  # 城2
     screen.blit(castle, (0, 240))  # 城3
@@ -64,11 +58,11 @@ while running:
 
     # プレイヤーをマウスで回転
     position = pygame.mouse.get_pos()
-    angle = math.atan2(
-        position[1] - (playerpos[1] + 32), position[0] - (playerpos[0] + 26))
-    playerrot = pygame.transform.rotate(player, 360 - angle * 57.29)
-    playerpos1 = (playerpos[0] - playerrot.get_rect().width //
-                  2, playerpos[1] - playerrot.get_rect().height // 2)
+    angle = math.atan2(position[1]-(playerpos[1]+32),
+                       position[0]-(playerpos[0]+26))
+    playerrot = pygame.transform.rotate(player, 360-angle*57.29)
+    playerpos1 = (playerpos[0]-playerrot.get_rect().width //
+                  2, playerpos[1]-playerrot.get_rect().height//2)
     screen.blit(playerrot, playerpos1)
 
     # 矢の設定
@@ -81,65 +75,62 @@ while running:
         if bullet[1] < -64 or bullet[1] > 640 or bullet[2] < -64 or bullet[2] > 480:
             arrows.pop(index)
         index += 1
-
-    for projectile in arrows:
-        arrow1 = pygame.transform.rotate(arrow, 360-projectile[0] * 57.29)
-        screen.blit(arrow1, (projectile[1], projectile[2]))
+        for projectile in arrows:
+            arrow1 = pygame.transform.rotate(arrow, 360-projectile[0] * 57.29)
+            screen.blit(arrow1, (projectile[1], projectile[2]))
 
     # 敵の設定
     if badtimer == 0:
         badguys.append([640, random.randint(50, 430)])
-        badtimer = 100 - (badtimer1 * 2)
+        badtimer = 100-(badtimer1*2)
         if badtimer1 >= 35:
             badtimer1 = 35
         else:
-            badtimer1 += 5
+            badtimer1 = badtimer1+5
+    index = 0
+    for badguy in badguys:
+        if badguy[0] < -64:
+            badguys.pop(index)
+        badguy[0] = badguy[0]-7
 
-        index = 0
-        for badguy in badguys:
-            if badguy[0] < -64:
+        # 城を攻撃
+        badrect = pygame.Rect(badguyimg.get_rect())
+        badrect.top = badguy[1]
+        badrect.left = badguy[0]
+        if badrect.left < 64:
+            hit.play()
+            healthvalue -= random.randint(5, 20)
+            badguys.pop(index)
+
+        # 攻撃された敵
+        index1 = 0
+        for bullet in arrows:
+            bullrect = pygame.Rect(arrow.get_rect())
+            bullrect.left = bullet[1]
+            bullrect.top = bullet[2]
+            if badrect.colliderect(bullrect):
+                enemy.play()
+                acc[0] += 1
                 badguys.pop(index)
-            else:
-                badguy[0] -= 7
+                arrows.pop(index1)
+            index1 += 1
 
-            # 城を攻撃
-            badrect = pygame.Rect(badguyimg.get_rect())
-            badrect.top = badguy[1]
-            badrect.left = badguy[0]
-            if badrect.left < 64:
-                hit.play()
-                healthvalue -= random.randint(5, 20)
-                badguys.pop(index)
+        index += 1
+    for badguy in badguys:
+        screen.blit(badguyimg, badguy)
 
-            # 攻撃された敵
-            index1 = 0
-            for bullet in arrows:
-                bullrect = pygame.Rect(arrow.get_rect())
-                bullrect.left = bullet[1]
-                bullrect.top = bullet[2]
-                if badrect.colliderect(bullrect):
-                    enemy.play()
-                    acc[0] += 1
-                    badguys.pop(index)
-                    arrows.pop(index1)
-                index1 += 1
+    # time
+    font = pygame.font.Font(None, 24)
+    survivedtext = font.render(str((90000 - pygame.time.get_ticks()) // 60000) + ":" + str(
+        ((90000 - pygame.time.get_ticks()) // 1000) % 60).zfill(2), True, (0, 0, 0))
+    textRect = survivedtext.get_rect()
+    textRect.topright = [635, 5]
+    screen.blit(survivedtext, textRect)
 
-            index += 1
-        for badguy in badguys:
-            screen.blit(badguyimg, badguy)
-
-        # time
-        font = pygame.font.Font(None, 24)
-        survivedtext = font.render(str(int((90000 - pygame.time.get_ticks()) / 60000)) + ":" + str(
-            int((90000 - pygame.time.get_ticks()) / 1000 % 60)).zfill(2), True, (0, 0, 0))
-        textRect = survivedtext.get_rect()
-        textRect.topright = [635, 5]
-        screen.blit(survivedtext, textRect)
-
-        # health
-        screen.blit(healthbar, (5, 5))
-        for health1 in range(healthvalue):
-            screen.blit(health, (health1 + 8, 8))
+    # health
+    screen.blit(healthbar, (5, 5))
+    for health1 in range(healthvalue):
+        screen.blit(health, (health1 + 8, 8))
 
     # 画面を再び描く
     pygame.display.flip()
@@ -176,8 +167,9 @@ while running:
             shoot.play()
             position = pygame.mouse.get_pos()
             acc[1] = acc[1] + 1
-            arrows.append([math.atan2(position[1] - (playerpos[1] + 32), position[0] -
-                                      (playerpos[0] + 26)), playerpos1[0] + 32, playerpos[1] + 32])
+            arrows.append([math.atan2(position[1] - (playerpos[1] + 32),
+                                      position[0] - (playerpos[0] + 26)), playerpos1[0] + 32,
+                           playerpos[1] + 32])
 
     # 移動範囲
     if keys[0]:
@@ -204,7 +196,8 @@ while running:
 if exitcode == 0:
     pygame.font.init()
     font = pygame.font.Font(None, 24)
-    text = font.render("Accuracy: " + str(accuracy) + "%", True, (0, 255, 0))
+    text = font.render(
+        "Accuracy: " + "{0:.2f}".format(accuracy) + "%", True, (255, 0, 0))
     textRect = text.get_rect()
     textRect.centerx = screen.get_rect().centerx
     textRect.centery = screen.get_rect().centery + 24
@@ -213,25 +206,17 @@ if exitcode == 0:
 else:
     pygame.font.init()
     font = pygame.font.Font(None, 24)
-    text = font.render("Accuracy: " + str(accuracy) + "%", True, (0, 255, 0))
+    text = font.render(
+        "Accuracy: " + "{0:.2f}".format(accuracy) + "%", True, (0, 255, 0))
     textRect = text.get_rect()
     textRect.centerx = screen.get_rect().centerx
     textRect.centery = screen.get_rect().centery + 24
     screen.blit(youwin, (0, 0))
     screen.blit(text, textRect)
 
-while 1:
+while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit(0)
-        pygame.display.flip()
-
-# キーボードでイメージを動かす
-# マウスでイメージを開店させる
-# 矢を発射
-# 敵が来る
-# 弓と敵が衝突
-# 残り時間とHPの表示
-# 条件による結果
-# ミュージック、音
+    pygame.display.flip()
