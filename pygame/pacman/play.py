@@ -3,15 +3,17 @@ import pygame
 
 # 1- reset
 pygame.init()
-width, height = 800, 600
+width, height = 600, 600
 screen = pygame.display.set_mode((width, height))
 keys = [False, False, False, False]
 pacmanpos = [350, 280]
+circle = []
 
 
 # 2- イメージを呼び出し
-pacman1 = pygame.image.load("resources/images/pacman.png")
-pacman2 = pygame.image.load("resources/images/pacman_c.png")
+pacman1 = pygame.image.load("resources/images/pacman1.png")
+pacman2 = pygame.image.load("resources/images/pacman2.png")
+circle_s = pygame.image.load("resources/images/small_circle.png")
 
 
 # 3- サウンド
@@ -21,7 +23,25 @@ while True:
     # 5- 画面を掃除
     screen.fill((0, 0, 0))
 # 6- 全ての要素を再び呼び出し
-    screen.blit(pacman, pacmanpos)
+
+    screen.blit(pacman1, pacmanpos)
+    # 6-1 丸を呼び出し
+    index = 0
+    for x in range(width // circle_s.get_width() + 1):
+        for y in range(height // circle_s.get_height() + 1):
+            screen.blit(circle_s, (x * 50, y * 50))
+
+    # 6-2 丸を食べる
+    index1 = 0
+    for eat in circle:
+        circlerect = pygame.Rect(circle_s.get_rect())
+        circlerect.left = eat[1]
+        circlerect.top = eat[2]
+        if pacman1.colliderect(circlerect):
+            circle_s.pop(index)
+            circle.pop(index1)
+        index1 += 1
+
 # 7- 画面をまた表示
     pygame.display.flip()
 # 8- ゲーム終了準備
@@ -52,13 +72,13 @@ while True:
                 keys[3] = False
 
     if keys[0]:
-        pacmanpos[1] -= 0.3
+        pacmanpos[1] -= 0.5
     elif keys[2]:
-        pacmanpos[1] += 0.3
+        pacmanpos[1] += 0.5
     if keys[1]:
-        pacmanpos[0] -= 0.3
+        pacmanpos[0] -= 0.5
     elif keys[3]:
-        pacmanpos[0] += 0.3
+        pacmanpos[0] += 0.5
 
 # パックマン
 #    自動
