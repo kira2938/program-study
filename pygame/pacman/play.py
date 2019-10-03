@@ -8,6 +8,7 @@ screen = pygame.display.set_mode((width, height))
 keys = [False, False, False, False]
 pacmanpos = [350, 280]
 circle = []
+acc = [0, 0]
 
 
 # 2- イメージを呼び出し
@@ -26,9 +27,11 @@ while True:
 
     screen.blit(pacman1, pacmanpos)
     # 6-1 丸を呼び出し
-    index = 0
-    for x in range(width // circle_s.get_width() + 1):
-        for y in range(height // circle_s.get_height() + 1):
+    # for x in range(width // circle_s.get_width() + 1):
+    #     for y in range(height // circle_s.get_height() + 1):
+    #         screen.blit(circle_s, (x * 50, y * 50))
+    for x in range(15):
+        for y in range(15):
             screen.blit(circle_s, (x * 50, y * 50))
 
     # 6-2 丸を食べる
@@ -38,6 +41,7 @@ while True:
         circlerect.left = eat[1]
         circlerect.top = eat[2]
         if pacman1.colliderect(circlerect):
+            acc[0] += 1
             circle_s.pop(index)
             circle.pop(index1)
         index1 += 1
