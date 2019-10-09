@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>JavaScript :: pacman project ::</title>
+  </head>
+  <body>
+    <h1></h1>
+    <canvas id="pacman" width="300" height="150">Test canvas</canvas>
+    <script type="text/JavaScript">
+      var cv = document.getElementById("pacman");
+      var ctx = cv.getContext("2d");
+      // 図形の塗りつぶしfillStyle   枠線の色指定はstrokeStyle
+      // スタイルの設定
+      ctx.StrokeStyle = "#FF0000";
+      ctx.fillStyle = "#FF0000";
+
+      // 上で設定したスタイルを描画する図形の設定開始
+      // スタイルの適用開始
+      ctx.beginPath();
+      // context.fillRect(left, top, width, height)
+
+      // 描画する円の形を決定(中心(100, 100)で半径50の円)
+      // 描画する図形の設定
+      // arc(中心x, 中心y, 半径, 開始角度, 終了角度, 反時計回り)
+      ctx.arc(100, 100, 50, 0, 2 * Math.PI);
+
+      // 円を塗りつぶしで実際描画
+      // 実際に図形を描画
+      ctx.fill();
+
+      // ここから下で描く図形は白色
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.fillStyle = "#FFFFFF";
+
+      // ラインの太さ
+      ctx.lineWidth = 3;
+
+      // 上記のスタイル設定の元描画したい図形を設定開始
+      ctx.beginPath();
+
+      // 中心角が-30から３０の円
+      ctx.arc(100, 100, 50, -30 * Math.PI/180, 30 * Math.PI/180);
+
+      // 描画の開始点を(100, 100)に移動
+      ctx.moveTo(100, 100);
+
+      // (100, 100)から指定した座標まで直線を設定
+      ctx.lineTo(100 + 50 * Math.cos(-30 * Math.PI/180), 100 + 50 * Math.sin(-30 * Math.PI/180));
+
+      // 一つ前の直線の終点から指定した座標まで直線を設定
+      ctx.lineTo(100 + 50 * Math.cos(30 * Math.PI/180), 100 + 50 * Math.sin(30 * Math.PI/180));
+
+      // 今まで設定してきた図形の枠線を描画
+      ctx.stroke();
+
+      // 今まで設定してきた図形を塗りつぶして描画
+      ctx.fill();
+
+      // 非ワインディングルールを考慮して書く
+      // var cv = document.getElementById('pacman');
+      // var ctx = cv.getContext("2d");
+
+      // ctx.strokeStyle = "#FF0000";
+      // ctx.fillStyle = "#FF0000";
+      // ctx.beginPath();
+      // ctx.arc(100, 100, 50, 30 * Math.PI / 180, 330 * Math.PI / 180);
+      // ctx.lineTo(100, 100);
+      // ctx.lineTo(100 + 50 * Math.cos(30 * Math.PI / 180), 100 + 50 * Math.sin(30 * Math.PI / 180));
+      // ctx.fill();
+    </script>
+  </body>
+</html>
