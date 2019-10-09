@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>JavaScript :: pacman project ::</title>
+  </head>
+  <body>
+    <h1></h1>
+    <canvas id="pacman" width="300" height="150">Test canvas</canvas>
+    <script type="text/JavaScript">
+      function drawPacman(ctx, cx, cy) {
+          ctx.strokeStyle = "#FF0000";
+          ctx.fillStyle = "#FF0000";
+          ctx.beginPath();
+          ctx.arc(cx, cy, 50, 30 * Math.PI / 180, 330 * Math.PI / 180);
+          ctx.lineTo(cx, cy);
+          ctx.lineTo(cx + 50 * Math.cos(30 * Math.PI / 180), cy + 50 * Math.sin(30 * Math.PI / 180));
+          ctx.fill();
+      }
+
+      var cv = document.getElementById("pacman");
+      var ctx = cv.getContext("2d");
+      drawPacman(ctx, 50, 50);
+      drawPacman(ctx, 240, 50);
+      drawPacman(ctx, 400, 50);
+    </script>
+  </body>
+</html>
