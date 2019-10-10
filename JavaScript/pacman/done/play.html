@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>JavaScript :: pacman project ::</title>
+    <script src="pacman.js"></script>
+    <script src="akabei.js"></script>
+  </head>
+  <body>
+    <canvas id="pacman" width="800" height="600">Test canvas</canvas>
+    <script type="text/JavaScript">
+      // キャンバスとそのキャンバスのコンテクストを取得
+      var cv = document.getElementById("pacman");
+      var ctx = cv.getContext("2d");
+
+      // パックマンとアカベーのインスタンスを作成
+      var pacman = new Pacman(50, 50, 3, 30);
+      var akabeis = [];
+      for(var i = 0; i < 3; i++) { // アカベーの移動速度をランダムにして3匹分のインスタンスを作成
+        akabeis.push(new Akabei(300, 300, Math.floor(Math.random() * 7)));
+      }
+
+      // キャンバスをフォーカスできるように設定
+      cv.tabIndex = 1;
+
+      // キャンバスに対して、キーが押された時の処理方法を設定
+      cv.onkeydown = function(event) {
+        event.preventDefault();
+        switch(event.keyCode) {
+          case 37:
+            pacman.go_left();
+            break;
+          case 38:
+            pacman.go_up();
+            break;
+          case 39:
+            pacman.go_right();
+            break;
+          case 40:
+            pacman.go_down();
+            break;
+        }
+      };
+
+      // ゲーム画面を描画して進行させる関数
+      // window.requestAnimationFrameメソッドから呼び出される
+      function main_loop(timestamp) {
+        ctx.clearRect(0, 0, cv.width, cv.height); //一つ前のフレームに描画された画面を削去
+
+        pacman.move(); //パックマンを移動させる
+        pacman.draw(ctx); //パックマンを描画
+
+        for(var i = 0; i < akabeis.length; i++) { // 赤べー達をパックマンの情報を基づいて移動させて描画
+          akabeis[i].move(pacman);
+          akabeis[i].draw(ctx);
+        }
+        window.requestAnimationFrame(main_loop); // 次のフレームの描画をブラウザに依頼
+      }
+      // ブラウザにmain_loop関数を用いてゲーム画面の描画をするように依頼
+      // 描画のタイミングはブラウザが決定する
+      window.requestAnimationFrame(main_loop);
+    </script>
+  </body>
+</html>
