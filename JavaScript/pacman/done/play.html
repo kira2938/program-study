@@ -5,6 +5,7 @@
     <title>JavaScript :: pacman project ::</title>
     <script src="pacman.js"></script>
     <script src="akabei.js"></script>
+    <script src="map001.js"></script>
   </head>
   <body>
     <canvas id="pacman" width="800" height="600">Test canvas</canvas>
@@ -13,12 +14,15 @@
       var cv = document.getElementById("pacman");
       var ctx = cv.getContext("2d");
 
+      // マップのインスタンスを作成
+      var map = new Map(0, 0, 20, 20, '#0000FF');
+
       // パックマンとアカベーのインスタンスを作成
-      var pacman = new Pacman(50, 50, 3, 30);
-      var akabeis = [];
-      for(var i = 0; i < 3; i++) { // アカベーの移動速度をランダムにして3匹分のインスタンスを作成
-        akabeis.push(new Akabei(300, 300, Math.floor(Math.random() * 7)));
-      }
+      var pacman = new Pacman(8, 40, 30, map, 1, 1);
+      // var akabeis = [];
+      // for(var i = 0; i < 3; i++) { // アカベーの移動速度をランダムにして3匹分のインスタンスを作成
+      //   akabeis.push(new Akabei(300, 300, Math.floor(Math.random() * 7)));
+      // }
 
       // キャンバスをフォーカスできるように設定
       cv.tabIndex = 1;
@@ -28,37 +32,54 @@
         event.preventDefault();
         switch(event.keyCode) {
           case 37:
-            pacman.go_left();
+            pacman.goLeft();
             break;
           case 38:
-            pacman.go_up();
+            pacman.goUp();
             break;
           case 39:
-            pacman.go_right();
+            pacman.goRight();
             break;
           case 40:
-            pacman.go_down();
+            pacman.goDown();
             break;
         }
       };
 
       // ゲーム画面を描画して進行させる関数
       // window.requestAnimationFrameメソッドから呼び出される
-      function main_loop(timestamp) {
-        ctx.clearRect(0, 0, cv.width, cv.height); //一つ前のフレームに描画された画面を削去
+      var previousDrawingTime = 0;
+      function mainLoop(timestamp) {
+        if(previousDrawingTime == 0) {
+          previousDrawingTime == timestamp;
+        }
 
-        pacman.move(); //パックマンを移動させる
+        // 前回の描画からの経過時間(ms)
+        var duration = timestamp - previousDrawingTime;
+
+        ctx.beginPath();
+        ctx.fillStyle = '#000000';
+        ctx.strokeStyle = '#0000FF';
+        ctx.rect(0, 0, cv.width, cv.height); // 一つ前のフレームに描画された画面を消去
+        ctx.fill();
+        ctx.stroke();
+
+        map.draw(ctx); // マップを描画
+
+        pacman.move(duration); //パックマンを移動させる
         pacman.draw(ctx); //パックマンを描画
 
-        for(var i = 0; i < akabeis.length; i++) { // 赤べー達をパックマンの情報を基づいて移動させて描画
-          akabeis[i].move(pacman);
-          akabeis[i].draw(ctx);
-        }
-        window.requestAnimationFrame(main_loop); // 次のフレームの描画をブラウザに依頼
+        previousDrawingTime = timestamp;
+
+        // for(var i = 0; i < akabeis.length; i++) { // 赤べー達をパックマンの情報を基づいて移動させて描画
+        //   akabeis[i].move(pacman);
+        //   akabeis[i].draw(ctx);
+        // }
+        window.requestAnimationFrame(mainLoop); // 次のフレームの描画をブラウザに依頼
       }
       // ブラウザにmain_loop関数を用いてゲーム画面の描画をするように依頼
       // 描画のタイミングはブラウザが決定する
-      window.requestAnimationFrame(main_loop);
+      window.requestAnimationFrame(mainLoop);
     </script>
   </body>
 </html>
