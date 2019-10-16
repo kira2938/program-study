@@ -5,7 +5,7 @@ var Map = function(startX, startY, tileWidth, tileHeight, wallFillStyle) {
 
   // タイルの大きさ
   this.tileWidth = tileWidth;
-  this.tileheight = tileHeight;
+  this.tileHeight = tileHeight;
 
   this.wallFillStyle = wallFillStyle; // タイルの塗りつぶし方法
 
@@ -45,14 +45,14 @@ Map.prototype = {
 
   // タイルの高さ
   getTileHeight: function() {
-    return this.tileheight;
+    return this.tileHeight;
   },
 
   // ピクセルで表される座標の点(x, y)が含まれるタイルを返す
   getTile: function(x, y) {
     var col = Math.floor((x - this.startX) / this.getTileWidth());
     var row = Math.floor((y - this.startY) / this.getTileHeight());
-    return {'row': row, 'col': col, ' kind': this.map[row][col]};
+    return {'row': row, 'col': col, ' kind': this.map[row, col]};
   },
 
   // row行col例目のタイルのピクセルで表される座標の左上の点(x, y)を返す
