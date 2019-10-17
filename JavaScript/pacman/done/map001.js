@@ -84,8 +84,8 @@ Map.prototype = {
   // ピクセルで表される座標の点(x, y)が属するタイルの下のタイルが壁であればtrueを返す
   isBelowBlockWall: function (x, y) {
     var tile = this.getTile(x, y);
-    return tile.row + 1 == this.getRowLength || this.map[tile.row + 1][tile.col == 0;]
-  }
+    return tile.row + 1 == this.getRowLength || this.map[tile.row + 1][tile.col == 0]
+  },
 
   // 壁の描画
   drawWall: function(ctx, row, col) {
