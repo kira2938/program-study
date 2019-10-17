@@ -21,7 +21,7 @@ var Character = function (speed, map, row, col) {
     };
     this.movingDirection = {
         'x': 0,
-        'y': 0E
+        'y': 0
     };
     this.nextMovingDirection = {
         'x': 0,
