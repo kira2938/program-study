@@ -1,115 +1,198 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>JavaScript :: pacman project ::</title>
-    <script src="character.js"></script>
-    <script src="pacman.js"></script>
-    <script src="akabei.js"></script>
-    <script src="map001.js"></script>
-  </head>
-  <body>
-    <canvas id="pacman" width="640" height="640">Test canvas</canvas>
-    <script type="text/JavaScript">
-      // キャンバスとそのキャンバスのコンテクストを取得
-      var cv = document.getElementById("pacman");
-      var ctx = cv.getContext("2d");
+// パックマンのコンストラクタを定義
+// パックマンは、半径、速度、移動方向、口開き具合、口パクの速度、初期タイルの位置を属性として持つ
+/**
+ * 
+ * @param radius 半径 
+ * @param speed 移動スピード(pixcel/s)
+ * @param theta 口の開き具合(度)
+ * @param map マップ
+ * @param row マップ上の初期位置(行)
+ * @param col マップ上の初期位置(列)
+ * @constructor
+ */
 
-      // マップのインスタンスを作成
-      var map = new Map(0, 0, 20, 20, '#0000FF');
+// パックマンの属性とともにコンストラクタを定義してPacmanという名前をつける
+var Pacman = function (radius, speed, theta, map, row, col) {
+  CharacterData.call(this, speed, map, row, col);
+  this.radius = radius;
+  this.theta = theta;
+  this.dTheta = 3;
+  // // タイルベースの移動に必要な情報
+  // this.map = map;
 
-      // パックマンとアカベーのインスタンスを作成
-      var pacman = new Pacman(10, 80, 30, map, 1, 1);
-      
-      // あかべいのインスタンスを作成
-      var akabeis = [];
-      akabeis.push(new Akabei(10, 80, '#FF0000', pacman, map, 1, 9));
-      akabeis.push(new Akabei(10, 60, '#00FF00', pacman, map, 9, 6));
-      akabeis.push(new Akabei(10, 90, '#0000FF', pacman, map, 10, 7));
-      // for(var i = 0; i < 3; i++) { // アカベーの移動速度をランダムにして3匹分のインスタンスを作成
-      //   akabeis.push(new Akabei(300, 300, Math.floor(Math.random() * 7)));
-      // }
+  // var rect = this.map.getTilePosition(row, col);
 
-      // キャンバスをフォーカスできるように設定
-      cv.tabIndex = 1;
+  // // ぷくセルベースの移動の描画に必要な情報
+ 
+  // this.position = {
+  //   x: Math.floor(rect.left + this.map.getTileWidth() / 2),
+  //   y: Math.floor(rect.top + this.map.getTileHeight() / 2)
+  // };
+  // this.moveingDirection = { x: 0, y: 0 };
+  // this.speed = speed;
+};
 
-      // キャンバスに対して、キーが押された時の処理方法を設定
-      cv.onkeydown = function(event) {
-        event.preventDefault();
-        switch(event.keyCode) {
-          case 37:
-            pacman.goLeft();
-            break;
-          case 38:
-            pacman.goUp();
-            break;
-          case 39:
-            pacman.goRight();
-            break;
-          case 40:
-            pacman.goDown();
-            break;
-        }
-      };
+// CharacterのprototypeをPacmanに設定
+inheritFromCharacter(Pacman);
 
-      function playloop(duration) {
-        ctx.beginPath();
-        ctx.fillStyle = '#000000';
-        ctx.strokeStyle = '#0000FF';
-        ctx.rect(0, 0, cv.width, cv.height); // 一つ前のフレームに描画された画面を消去
-        ctx.fill();
-        ctx.stroke();
+// パックマンのメソッドを定義
+// 今のところ、メソッドはコンストラクタの持つporototypeオブジェクトのメソッドとして定義すると覚える
+Pacman.prototype.getRadius = function () {
+  return this.radius;
+};
 
-        map.draw(ctx); // マップを描画
-
-        pacman.move(duration); // パックマンを移動させる
-        pacman.draw(ctx); // パックマンを描画
-
-        for(var i = 0; i < akabeis.lenght; i++) {
-          akabeis[i].move(duration);
-          akabeis[i].killPacman();
-          akabeis[i].draw(ctx);
-        }
-      }
-
-      // ゲーム画面を描画して進行させる関数
-      // window.requestAnimationFrameメソッドから呼び出される
-      var previousDrawingTime = 0;
-      function mainLoop(timestamp) {
-        if(previousDrawingTime == 0) {
-          previousDrawingTime == timestamp;
-        }
-
-        // 前回の描画からの経過時間(ms)
-        var duration = timestamp - previousDrawingTime;
-
-        if(pacman.isAlive()) {
-          playloop(duration);
-        }
-
-        previousDrawingTime = timestamp; // 描画した時刻の更新
-
-        // ctx.beginPath();
-        // ctx.fillStyle = '#000000';
-        // ctx.strokeStyle = '#0000FF';
-        // ctx.rect(0, 0, cv.width, cv.height); // 一つ前のフレームに描画された画面を消去
-        // ctx.fill();
-        // ctx.stroke();
-
-        // map.draw(ctx); // マップを描画
-
-        // pacman.move(duration); //パックマンを移動させる
-        // pacman.draw(ctx); //パックマンを描画
+Pacman.prototype.getLeft = function () {
+  return this.getCx() - this.getRadius();
+};
   
-        // for(var i = 0; i < akabeis.length; i++) { // 赤べー達をパックマンの情報を基づいて移動させて描画
-        //   akabeis[i].move(pacman);
-        //   akabeis[i].draw(ctx);
-        // }
-        window.requestAnimationFrame(mainLoop); // 次のフレームの描画をブラウザに依頼
-      }
-      // ブラウザにmain_loop関数を用いてゲーム画面の描画をするように依頼
-      // 描画のタイミングはブラウザが決定する
-      window.requestAnimationFrame(mainLoop);
-    </script>
-  </body>
-</html>
+Pacman.prototype.getTop = function () {
+  return this.getCy() - this.getRadius();
+};
+
+Pacman.prototype.getRight = function () {
+  return this.getCx() + this.getRadius();
+};
+
+Pacman.prototype.getBottom = function () {
+  return this.getCy() + this.getRadius();
+};
+  
+Pacman.prototype.getTheta = function () {
+  return this.theta;
+};
+
+Pacman.prototype.chew = function () {
+  if (this.theta >= 30 || this.theta <= 0) {
+    this.dTheta *= -1;
+  }
+  this.theta += this.dTheta;
+  return this.theta;
+};
+
+Pacman.prototype.move = function (duration) {
+  this.chew();
+  CharacterData.prototype.move.call(this, duration);
+};
+
+Pacman.prototype.draw = function (ctx) {
+  ctx.strokeStyle = "#FF0000";
+  ctx.fillStyle = "#FF0000";
+  ctx.beginPath();
+  ctx.arc(this.getCx(), this.getCy(), this.radius, this.getTheta() * Math.PI / 180, (360 - this.getTheta()) * Math.PI / 180);
+  ctx.lineTo(this.getCx(), this.getCy());
+  ctx.lineTo(this.getCx() + this.radius * Math.cos(this.getTheta() * Math.PI / 180), this.position[1] + this.radius * Math.sin(this.getTheta() * Math.PI / 180));
+  ctx.fill();
+};
+
+
+// Pacman.prototype = {
+//   getCx: function() {
+//     return this.position.x;
+//   },
+
+//   getCy: function() {
+//     return this.position.y;
+//   },
+
+//   getRadius: function() {
+//     return this.radius;
+//   },
+
+//   getLeft: function() {
+//     return this.getCx() - this.getRadius;
+//   },
+
+//   getRight: function() {
+//     return this.getCx() + this.getRadius;
+//   },
+
+//   getTop: function() {
+//     return this.getCy() - this.getRadius;
+//   },
+
+//   getBottom: function() {
+//     return this.getCy() + this.getRadius;
+//   },
+
+//   getSpeed: function() {
+//     return this.speed;
+//   },
+
+//   getTheta: function() {
+//     return this.theta;
+//   },
+
+//   goLeft: function() {
+//     this.moveingDirection = { x: -1, y: 0 };
+//   },
+
+//   goRight: function() {
+//     this.moveingDirection = { x: 1, y: 0 };
+//   },
+
+//   goUp: function() {
+//     this.moveingDirection = { x: 0, y: -1 };
+//   },
+
+//   goDown: function() {
+//     this.moveingDirection = { x: 0, y: 1 };
+//   },
+
+//   isInWall: function() {
+//     return this.map.isWall(this.getLeft(), this.getTop()) || this.map.isWall(this.getLeft(), this.getBottom()) || this.map.isWall(this.getRight(), this.getTop()) || this.map.isWall(this.getRight(), this.getBottom())
+//   },
+
+//   move: function(duration) {
+//     this.chew();
+
+//     var previous_pos_x = this.position.x;
+//     var previous_pos_y = this.position.y;
+
+//     this.position.x +=
+//       (this.moveingDirection.x * duration * this.getSpeed()) / 1000;
+
+//     if (this.isInWall()) {
+//       this.position.x = previous_pos_x;
+//     }
+
+//     this.position.y +=
+//       (this.moveingDirection.y * duration * this.getSpeed()) / 1000;
+
+//     if (this.isInWall()) {
+//       this.position.y = previous_pos_y;
+//     }
+
+//     // for (var i = 0; i < 2; i++) {
+//     //   this.position[i] += this.moveingDirection[i];
+//     // }
+//   },
+
+//   chew: function() {
+//     if (this.theta >= 30 || this.theta <= 0) {
+//       this.dTheta *= -1;
+//     }
+//     this.theta += this.dTheta;
+//     return this.theta;
+//   },
+
+//   draw: function(ctx) {
+//     // RADIUS = 20;
+//     ctx.strokeStyle = "#FF0000";
+//     ctx.fillStyle = "#FF0000";
+//     ctx.beginPath();
+//     ctx.arc(
+//       this.getCx(),
+//       this.getCy(),
+//       this.radius,
+//       (this.getTheta() * Math.PI) / 180,
+//       ((360 - this.getTheta()) * Math.PI) / 180
+//     );
+//     ctx.lineTo(this.getCx(), this.getCy());
+//     ctx.lineTo(
+//       this.getCx() + this.radius * Math.cos((this.getTheta() * Math.PI) / 180),
+//       this.position[1] +
+//         this.radius * Math.sin((this.getTheta() * Math.PI) / 180)
+//     );
+//     ctx.fill();
+//   }
+// };
