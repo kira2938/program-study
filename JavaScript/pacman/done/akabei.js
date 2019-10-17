@@ -65,16 +65,16 @@ Akabei.prototype.killPacman = function () {
   //   return this.speed;
   // },
 
-  move: function(pacman) {
-    this.movingDirection[0] = this.movingDirection[1] = 0;
-    var i = Math.floor(2 * Math.random());
-    if (pacman.getPosition(i) - this.position[i] != 0) {
-      this.movingDirection[i] =
-        (pacman.getPosition(i) - this.position[i]) /
-        Math.abs(pacman.getPosition(i) - this.position[i]);
-      this.position[i] += this.getSpeed() * this.movingDirection[i];
-    }
-  },
+  // move: function(pacman) {
+  //   this.movingDirection[0] = this.movingDirection[1] = 0;
+  //   var i = Math.floor(2 * Math.random());
+  //   if (pacman.getPosition(i) - this.position[i] != 0) {
+  //     this.movingDirection[i] =
+  //       (pacman.getPosition(i) - this.position[i]) /
+  //       Math.abs(pacman.getPosition(i) - this.position[i]);
+  //     this.position[i] += this.getSpeed() * this.movingDirection[i];
+  //   }
+  // },
 
 Akabei.prototype.draw = function(ctx) {
   var cx = this.getCx();
