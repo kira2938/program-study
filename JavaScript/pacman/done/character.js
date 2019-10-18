@@ -1,13 +1,12 @@
 /**
- * キャラクタを表現するオブジェクトのコンストラクタ
- * キャラクタが共通に持つ性質(properties)を定義
- * @param speed 移動スピード
+ * キャラクタを表現するオブジェクトのコンストラクタ。
+ * キャラクタが共通に持つ性質 (properties) を定義。
+ * @param speed 移動スピード (pixcel/s)
  * @param map マップ
- * @param row マップ上の初期位置(行)
- * @param col マップ上の初期位置(列)
+ * @param row マップ上の初期位置 (行)
+ * @param col マップ上の初期位置 (列)
  * @constructor
  */
-
 var Character = function (speed, map, row, col) {
     // タイルベースの移動に必要な情報
     this.map = map;
@@ -17,16 +16,10 @@ var Character = function (speed, map, row, col) {
     // ピクセルベースの移動の描画に必要な情報
     this.position = {
         'x': Math.floor(leftTop.left + this.map.getTileWidth() / 2),
-        'y': Math.floor(leftTop.top + this.map.getTileHeight() / 2),
+        'y': Math.floor(leftTop.top + this.map.getTileHeight() / 2)
     };
-    this.movingDirection = {
-        'x': 0,
-        'y': 0
-    };
-    this.nextMovingDirection = {
-        'x': 0,
-        'y': 0
-    };
+    this.movingDirection = {'x': 0, 'y': 0};
+    this.nextMovingDirection = {'x': 0, 'y': 0};
     this.speed = speed;
     this.movingDistance = 0;
 
@@ -34,7 +27,7 @@ var Character = function (speed, map, row, col) {
 };
 
 Character.prototype.toString = function () {
-    var str = ' ';
+    var str = '';
     str += 'Current position: (' + this.position.x + ', ' + this.position.y + ')\n';
     str += 'Moving direction: (' + this.movingDirection.x + ', ' + this.movingDirection.y + ')\n';
     str += 'Next moving direction: (' + this.nextMovingDirection.x + ', ' + this.nextMovingDirection.y + ')\n';
@@ -53,39 +46,39 @@ Character.prototype.getCy = function () {
 };
 
 /**
- * キャラクタの左端の座標(Pixcel)を返す
- * 必ずキャラクタ毎にオーバーライドすること
+ * キャラクタの左端の座標 (Pixcel)を返す。
+ * 必ずキャラクタ毎にオーバーライドすること。
  * @method getLeft
-*/
+ */
 Character.prototype.getLeft = function () {
-    throw 'getLeft method must be overridden.'
+    throw 'getLeft method must be overridden.';
 };
 
 /**
- * キャラクタの右端の座標(Pixcel)を返す
- * 必ずキャラクタ毎にオーバーライドすること
+ * キャラクタの右端の座標 (Pixcel)を返す。
+ * 必ずキャラクタ毎にオーバーライドすること。
  * @method getRight
-*/
+ */
 Character.prototype.getRight = function () {
-    throw 'getRight method must be overridden.'
+    throw 'getRight method must be overridden.';
 };
 
 /**
- * キャラクタの上端の座標(Pixcel)を返す
- * 必ずキャラクタ毎にオーバーライドすること
+ * キャラクタの上端の座標 (Pixcel)を返す。
+ * 必ずキャラクタ毎にオーバーライドすること。
  * @method getTop
-*/
+ */
 Character.prototype.getTop = function () {
-    throw 'getTop method must be overridden.'
+    throw 'getTop method must be overridden.';
 };
 
 /**
- * キャラクタの下端の座標(Pixcel)を返す
- * 必ずキャラクタ毎にオーバーライドすること
+ * キャラクタの下端の座標 (Pixcel)を返す。
+ * 必ずキャラクタ毎にオーバーライドすること。
  * @method getBottom
-*/
+ */
 Character.prototype.getBottom = function () {
-    throw 'getBottom method must be overridden.'
+    throw 'getBottom method must be overridden.';
 };
 
 Character.prototype.getSpeed = function () {
@@ -93,19 +86,19 @@ Character.prototype.getSpeed = function () {
 };
 
 Character.prototype.goLeft = function () {
-    this.nextMovingDirection = { 'x': -1, 'y': 0 };
+    this.nextMovingDirection = {'x': -1, 'y': 0};
 };
 
 Character.prototype.goRight = function () {
-    this.nextMovingDirection = { 'x': 1, 'y': 0 };
+    this.nextMovingDirection = {'x': 1, 'y': 0};
 };
 
 Character.prototype.goUp = function () {
-    this.nextMovingDirection = { 'x': 0, 'y': -1 };
+    this.nextMovingDirection = {'x': 0, 'y': -1};
 };
 
 Character.prototype.goDown = function () {
-    this.nextMovingDirection = { 'x': 0, 'y': 1 };
+    this.nextMovingDirection = {'x': 0, 'y': 1};
 };
 
 Character.prototype.isMovingHorizontally = function () {
@@ -130,7 +123,7 @@ Character.prototype.isNextMovingDirectionOk = function () {
     } else if (this.nextMovingDirection.y > 0) {
         return !this.map.isBelowBlockWall(this.position.x, this.position.y);
     } else {
-        return ture;
+        return true;
     }
 };
 
@@ -169,35 +162,35 @@ Character.prototype.move = function (duration) {
             this.nextMovingDirection.x = this.movingDirection.x;
             this.nextMovingDirection.y = this.movingDirection.y;
             if (!this.isNextMovingDirectionOk()) {
-                this.movingDirection = { 'x': 0, 'y': 0 };
+                this.movingDirection = {'x': 0, 'y': 0};
             }
         }
     }
 };
 
 Character.prototype.getDistance = function (other) {
-    return Math.sqrt(Math.pow(this.getCx() = other.getCx(), 2) + Math.pow(this.getCy() - other.getCy(), 2));
+    return Math.sqrt(Math.pow(this.getCx() - other.getCx(), 2) + Math.pow(this.getCy() - other.getCy(), 2));
 };
 
 Character.prototype.isAlive = function () {
     return this.alive;
 };
 
-Character.prototype.die = function () {
+Character.prototype.die = function() {
     this.alive = false;
 };
 
 /**
- * キャラクタを描画する
- * 必ずキャラクタ毎にオーバーライドすること
+ * キャラクタを描画する。
+ * 必ずキャラクタ毎にオーバーライドすること。
  * @method draw
  */
-Character.prototype.fraw = function (ctx) {
+Character.prototype.draw = function (ctx) {
     throw 'draw method must be overridden.';
 };
 
 /**
- * Characterのプロトタイプを子クラスに継承させるための処理を行う関数
+ * Character のプロトタイプを子クラスに継承させるための処理を行う関数。
  * @param childClass 作成する子クラス
  */
 var inheritFromCharacter = function (childClass) {
