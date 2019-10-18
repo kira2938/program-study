@@ -52,7 +52,7 @@
         }
       };
 
-      function playloop(duration) {
+      function playLoop(duration) {
         ctx.beginPath();
         ctx.fillStyle = '#000000';
         ctx.strokeStyle = '#0000FF';
@@ -65,7 +65,7 @@
         pacman.move(duration); // パックマンを移動させる
         pacman.draw(ctx); // パックマンを描画
 
-        for(var i = 0; i < akabeis.lenght; i++) {
+        for(var i = 0; i < akabeis.length; i++) {
           akabeis[i].move(duration);
           akabeis[i].killPacman();
           akabeis[i].draw(ctx);
@@ -77,14 +77,14 @@
       var previousDrawingTime = 0;
       function mainLoop(timestamp) {
         if(previousDrawingTime == 0) {
-          previousDrawingTime == timestamp;
+          previousDrawingTime = timestamp;
         }
 
         // 前回の描画からの経過時間(ms)
         var duration = timestamp - previousDrawingTime;
 
         if(pacman.isAlive()) {
-          playloop(duration);
+          playLoop(duration);
         }
 
         previousDrawingTime = timestamp; // 描画した時刻の更新
