@@ -13,7 +13,7 @@
 
 // パックマンの属性とともにコンストラクタを定義してPacmanという名前をつける
 var Pacman = function (radius, speed, theta, map, row, col) {
-  CharacterData.call(this, speed, map, row, col);
+  Character.call(this, speed, map, row, col);
   this.radius = radius;
   this.theta = theta;
   this.dTheta = 3;
@@ -71,7 +71,7 @@ Pacman.prototype.chew = function () {
 
 Pacman.prototype.move = function (duration) {
   this.chew();
-  CharacterData.prototype.move.call(this, duration);
+  Character.prototype.move.call(this, duration);
 };
 
 Pacman.prototype.draw = function (ctx) {
