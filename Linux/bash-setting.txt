@@ -1,0 +1,24 @@
+エイリアス  >> 既存のコマンドに別名をつけて実行
+  ex) $ alias 名前='コマンド' // $ alias ls='ls -F'
+  
+  ・エイリアスの確認 $ type ls
+  ・エイリアスの削除 $ unalias ls
+  - エイリアスを一時的に無効
+    $ /bin/ls
+    $ command ls
+    $ \ls
+    
+bashのオプション
+  /===== setコマンド
+    $ set -o/+o オプション名
+
+    setコマンドのオプション
+      ignoreeof : C + Dを押してもシェルを終了しない
+      noclobber : 既に存在するファイルをリダイレクトで上書きしない
+      noglob : パス名展開を無効にする 
+    
+  /===== shoptコマンド
+    $ shopt -s/-u オプション名
+    
+    shoptコマンドのオプション
+    
