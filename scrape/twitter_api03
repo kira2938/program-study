@@ -1,0 +1,32 @@
+import os
+from datetime import date
+import tweepy
+
+Consumer_Key = ''
+Consumer_Secret_Key = ''
+Access_Token = ''
+Access_Token_Secret = ''
+
+auth = tweepy.OAuthHandler(Consumer_Key, Consumer_Secret_Key)
+auth.set_access_token(Access_Token, Access_Token_Secret)
+api = tweepy.API(auth, wait_on_rate_limit=True)
+
+#Twitter取得
+keyword = "東京 AND マスク AND 買った OR 買えた"
+outputfile = open(os.getcwd() + "/mask-titter.csv", 'w', encoding='utf_8_sig')
+cursor = tweepy.Cursor(api.search, q=keyword, since=date.today())
+
+for i,tweet in enumerate(cursor.items()):
+    print("{}: {}".format(i, tweet.text))
+    outputfile.write(tweet.text + '\n')
+
+outputfile.close()
+
+keyword = "東京 AND 消毒剤 OR 消毒液 OR 消毒スプレー OR 消毒ジェル AND 買った OR 買えた"
+outputfile = open(os.getcwd() + "/disinfection-titter.csv", 'w', encoding='utf_8_sig')
+
+for i,tweet in enumerate(cursor.items()):
+    print("{}: {}".format(i, tweet.text))
+    outputfile.write(tweet.text + '\n')
+
+outputfile.close()
