@@ -1,0 +1,61 @@
+import csv
+import os
+from datetime import date
+import tweepy
+
+# Twitter API 関連
+Consumer_Key = 'J9QT8JTuTx5XRMJrf2Rle93di'
+Consumer_Secret_Key = 'QqM5Dxo312TJTTP9FPU90XQvIHci5K7SMshHy3eo2AgfaStrdh'
+Access_Token = '1237658966684913666-6q1WisDElg1cz8T58VoAjA5jctTWKh'
+Access_Token_Secret = 'JU31JAcZ4lkJk4BU90HVDpv5R1r3bkN07uaeXOB0PToDY'
+
+auth = tweepy.OAuthHandler(Consumer_Key, Consumer_Secret_Key)
+auth.set_access_token(Access_Token, Access_Token_Secret)
+api = tweepy.API(auth, wait_on_rate_limit=True)
+
+def search_keyword(keyword):
+    if keyword == "マスク":
+        searchword = "東京 AND マスク AND 買った OR 変えた OR 買って OR ゲッド OR get AND 入荷 AND 売って"
+        return searchword
+    elif keyword == "消毒":
+        searchword = "東京 AND 消毒剤 OR 消毒液 OR 消毒スプレー OR 消毒ジェル AND 買った OR 変えた OR 買って OR ゲッド OR get AND 入荷 AND 売って"
+        return searchword
+
+def output_filename(filename):
+    outputfile = open(os.getcwd() + filename + "_{0:%Y%m%d}".format(date.today()) + ".csv", 'w', encoding='utf_8_sig')
+    return outputfile
+
+def result(searchkeyword, outputfile):
+    cursor = tweepy.Cursor(api.search, q=searchkeyword, since=date.today())
+
+    # csv用配列
+    lines = []
+    header = ['Date', 'Tweet']
+
+    for line in cursor.items(150):
+        lines.append(["{0:%Y/%m/%d %H:%M:%S}".format(line.created_at), line.text])
+
+    writer = csv.writer(outputfile, lineterminator='\n')
+    writer.writerow(header)
+    writer.writerows(lines)
+
+    print(lines)
+    outputfile.close()
+
+def mask():
+    searchkeyword = search_keyword("マスク")
+    outputfile = output_filename("/mask-twitter")
+    result(searchkeyword, outputfile)
+
+def disinfection():
+    searchkeyword = search_keyword("消毒")
+    outputfile = output_filename("/disinfection-titter")
+    result(searchkeyword, outputfile)
+
+if __name__ == '__mask__':
+    mask()
+elif __name__ == '__disinfection__':
+    disinfection()
+
+mask()
+disinfection()
