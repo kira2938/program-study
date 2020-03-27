@@ -4,10 +4,10 @@ from datetime import date
 import tweepy
 
 # Twitter API 関連
-Consumer_Key = 'J9QT8JTuTx5XRMJrf2Rle93di'
-Consumer_Secret_Key = 'QqM5Dxo312TJTTP9FPU90XQvIHci5K7SMshHy3eo2AgfaStrdh'
-Access_Token = '1237658966684913666-6q1WisDElg1cz8T58VoAjA5jctTWKh'
-Access_Token_Secret = 'JU31JAcZ4lkJk4BU90HVDpv5R1r3bkN07uaeXOB0PToDY'
+Consumer_Key = ''
+Consumer_Secret_Key = ''
+Access_Token = ''
+Access_Token_Secret = ''
 
 auth = tweepy.OAuthHandler(Consumer_Key, Consumer_Secret_Key)
 auth.set_access_token(Access_Token, Access_Token_Secret)
