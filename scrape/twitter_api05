@@ -1,0 +1,79 @@
+import pandas as pd
+from datetime import date
+import config
+import tweepy
+import smtplib
+from email import message
+
+CK = config.Consumer_Key
+CS = config.Consumer_Secret_Key
+AT = config.Access_Token
+ATS = config.Access_Token_Secret
+
+auth = tweepy.OAuthHandler(CK, CS)
+auth.set_access_token(AT, ATS)
+api = tweepy.API(auth, wait_on_rate_limit=True)
+
+# キーワードチェック
+def search_keyword(keyword):
+    if keyword == "マスク":
+        searchword = "東京 AND マスク"
+        return searchword
+    elif keyword == "消毒":
+        searchword = "東京 AND 消毒 OR アルコール消毒"
+        return searchword
+
+def result(searchword):
+
+    # テキストの文字数指定
+    pd.set_option("display.max_colwidth", 500)
+
+    # データ格納用配列
+    datetime = []
+    t_text = []
+
+    # apiからキーワード検索を最新順に指定
+    cursor = tweepy.Cursor(api.search, q=searchword, since=date.today(), max_id=-1)
+
+    # データをループさせ格納
+    for i, line in enumerate(cursor.items(100)):
+        if ("買った" in line.text) or ("買えた" in line.text) or ("買って" in line.text) or \
+                ("get" in line.text) or ("ゲット" in line.text) or ("入荷" in line.text) or ("売って" in line.text):
+            datetime.append("{0:%H:%M:%S}".format(line.created_at))
+            t_text.append(line.text + ' https://twitter.com/i/web/status/{0}'.format(line.id))
+
+    data = {}
+    data['date'] = datetime
+    data['tweet'] = t_text
+
+    df = pd.DataFrame(data)
+
+    print(df)
+
+    msg = message.EmailMessage()
+    msg.set_content(str(df))
+    msg['Subject'] = searchword + "_" + str(date.today()) + '_ツイート'
+    msg['From'] = config.from_email
+    msg['To'] = config.to_email
+
+    server = smtplib.SMTP_SSL(config.smtp_host, config.smtp_port)
+    server.ehlo()
+    server.login(config.from_email, config.email_pass)
+    server.send_message(msg)
+    server.quit()
+
+def mask():
+    searchkeyword = search_keyword("マスク")
+    result(searchkeyword)
+
+def disinfection():
+    searchkeyword = search_keyword("消毒")
+    result(searchkeyword)
+
+if __name__ == '__mask__':
+    mask()
+elif __name__ == '__disinfection__':
+    disinfection()
+
+mask()
+disinfection()
