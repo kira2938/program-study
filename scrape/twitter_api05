@@ -1,3 +1,20 @@
+#config
+
+# Twitter API 情報
+Consumer_Key = 'Twitter API Consumer Key'
+Consumer_Secret_Key = 'Twitter API Consumer Secret Key'
+Access_Token = 'Twitter API Access Token'
+Access_Token_Secret = 'Twitter API Access Token Secret'
+
+# Gmail 情報
+smtp_host = 'smtp.gmail.com'
+smtp_port = 465
+from_email = 'from mail adress'
+to_email = 'to mail adress'
+email_pass = 'from mail password'
+
+#code
+
 import datetime, json, config, time, threading, smtplib
 from email import message
 from datetime import date
