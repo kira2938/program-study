@@ -1,0 +1,84 @@
+import datetime, json, config, time, threading, smtplib
+from email import message
+from datetime import date
+import pandas as pd
+from requests_oauthlib import OAuth1Session
+
+
+def result():
+    #Twitter api 情報を定義
+    CK = config.Consumer_Key
+    CSK = config.Consumer_Secret_Key
+    AT = config.Access_Token
+    ATS = config.Access_Token_Secret
+
+    #Pandas表示オプション
+    pd.set_option("display.max_colwidth", None)
+    pd.set_option("display.max_columns", 3)
+
+    #Twitter api 接続Set
+    twitter = OAuth1Session(CK, CSK, AT, ATS)
+    url = "https://api.twitter.com/1.1/search/tweets.json"
+    params = {'q':"東京 AND コロナ AND 感染者", 'count':100}
+
+    #Twitter apiからデータを取得
+    req = twitter.get(url, params=params)
+
+    #処理
+    if req.status_code == 200:
+        timeline = json.loads(req.text)
+
+        tw_date = []
+        tw_text = []
+
+        for tweet in timeline['statuses']:
+            if ("RT" not in tweet['text']):
+                if ("ニュース" in tweet['text']) or ("速報" in tweet['text']) or ("記事" in tweet['text']):
+                    getdate = datetime.datetime.strptime(tweet['created_at'], '%a %b %d %H:%M:%S %z %Y')
+                    getdate = getdate.astimezone()
+                    created_at = datetime.datetime.strftime(getdate, '%H:%M:%S')
+
+                    if tw_date != created_at:
+                        url = 'https://twitter.com/i/web/status/' + tweet['id_str']
+                        time_url = created_at + '  ' + url
+                        tw_date.append(time_url)
+
+                        text = tweet['text']
+                        tw_text.append(text)
+
+        tw_dic = {}
+        tw_dic['時間&url'] = tw_date
+        tw_dic['ツイート'] = tw_text
+
+        df = pd.DataFrame(tw_dic)
+        
+        #メールに送信
+        msg = message.EmailMessage()
+        msg.set_content(str(df))
+        msg['Subject'] = str(date.today()) + '_ツイート'
+        msg['From'] = config.from_email
+        msg['To'] = config.to_email
+
+        server = smtplib.SMTP_SSL(config.smtp_host, config.smtp_port)
+        server.ehlo()
+        server.login(config.from_email, config.email_pass)
+        server.send_message(msg)
+        server.quit()
+        print(df)
+
+#タイマー関数
+#interval 秒単位
+#f 対象関数
+def scheduler(interval, f, wait = True):
+    base_time = time.time()
+    next_time = 0
+
+    while True:
+        t = threading.Thread(target=f)
+        t.start()
+        if wait:
+            t.join()
+        next_time = ((base_time - time.time()) % interval) or interval
+        time.sleep(next_time)
+
+scheduler(600, result, False)
