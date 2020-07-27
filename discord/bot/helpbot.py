@@ -9,9 +9,9 @@ client = discord.Client()
 # app = commands.Bot(command_prefix="$")
 
 # Bot アクセストークン
-token = "NzI5NTc0OTI4MDY3NTkyMTky.XwK71g.lintONVPMZvgZY8mOyH2eTLIfus"
-channel_id = 729573049292029975
-voicechannel_id = 729573049292029976
+token = "mytoken"
+channel_id = "mychannel"
+voicechannel_id = "mychannel"
 
 dtime = datetime.datetime.now()
 TODAY = dtime.today()
