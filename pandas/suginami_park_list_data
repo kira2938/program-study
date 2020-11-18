@@ -1,6 +1,7 @@
 import camelot
 import pandas as pd
 import numpy as np
+import folium
 
 file_name = "tokyo_park_list.pdf"
 read_file = camelot.read_pdf(file_namename)
@@ -45,3 +46,8 @@ df = df.sort_values(by="面積", ascending=False)
 for n in range(0, 278):
     df["公園名"] = df["公園名"].str.replace(str(n), '')
 df
+
+map_test = folium.Map(location=[35.707409, 139.625657], zoom_start=17)
+marker1 = folium.Marker(location=[35.707409, 139.625657], popup='Home', icon=folium.Icon(color='red'))
+marker1.add_to(map_test)
+map_test
