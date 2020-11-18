@@ -1,0 +1,47 @@
+import camelot
+import pandas as pd
+import numpy as np
+
+file_name = "tokyo_park_list.pdf"
+read_file = camelot.read_pdf(file_namename)
+
+def suginami_list():
+    suginami_pages = []
+    pages = ['90','91','92','93','94','95','96','97','98']
+    for page in pages:
+        read_page = camelot.read_pdf("tokyo_park_list.pdf", pages=page)
+        suginami_page = read_page.export('{0}.csv'.format(page), f='csv')
+        suginami_pages.append(suginami_page)
+    return suginami_pages
+    
+suginami_list()
+
+df1 = pd.read_csv("90-page-90-table-1.csv")
+df2 = pd.read_csv("91-page-91-table-1.csv")
+df3 = pd.read_csv("92-page-92-table-1.csv")
+df4 = pd.read_csv("93-page-93-table-1.csv")
+df5 = pd.read_csv("94-page-94-table-1.csv")
+df6 = pd.read_csv("95-page-95-table-1.csv")
+df7 = pd.read_csv("96-page-96-table-1.csv")
+df8 = pd.read_csv("97-page-97-table-1.csv")
+df9 = pd.read_csv("98-page-98-table-1.csv")
+
+df = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9], ignore_index=True)
+df = df.replace( '\n', '', regex=True)
+df = df.replace( '　', '', regex=True)
+df = df.replace( ' ', '', regex=True)
+df = df.rename(columns={"公　　　園　　　名":"公園名", "位　　　　　　　　　　置":"位置", "面　積　㎡":"面積", "備　　　　　考":"備考"})
+df["公園名"] = df["公園名"].str.replace('〃', '公園')
+df["位置"] = df["位置"].str.replace('〃', '杉並区')
+df["面積"] = df["面積"].str.replace('区', '㎡')
+df.drop(277, inplace=True)
+df["面積"] = df["面積"].str.replace('都', '')
+df["面積"] = df["面積"].str.replace('㎡', '')
+df["面積"] = df["面積"].str.replace('国', '')
+df.drop(['土地所有別㎡', '開園年月日\n移管年月日'], axis='columns', inplace=True)
+df["面積"] = df["面積"].str.replace(',', '')
+df['面積'] = pd.to_numeric(df['面積'])
+df = df.sort_values(by="面積", ascending=False)
+for n in range(0, 278):
+    df["公園名"] = df["公園名"].str.replace(str(n), '')
+df
