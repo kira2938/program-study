@@ -4,7 +4,7 @@ import numpy as np
 import folium
 
 file_name = "tokyo_park_list.pdf"
-read_file = camelot.read_pdf(file_namename)
+read_file = camelot.read_pdf(file_name)
 
 def suginami_list():
     suginami_pages = []
