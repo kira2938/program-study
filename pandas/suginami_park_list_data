@@ -2,6 +2,10 @@ import camelot
 import pandas as pd
 import numpy as np
 import folium
+import requests
+from bs4 import BeautifulSoup
+import time
+from tqdm import tqdm
 
 file_name = "tokyo_park_list.pdf"
 read_file = camelot.read_pdf(file_name)
@@ -51,3 +55,27 @@ map_test = folium.Map(location=[35.707409, 139.625657], zoom_start=17)
 marker1 = folium.Marker(location=[35.707409, 139.625657], popup='Home', icon=folium.Icon(color='red'))
 marker1.add_to(map_test)
 map_test
+
+def get_lat_lon_from_address(address_l):
+    """
+    address_lにlistの形で住所を入れてあげると、latlonsという入れ子上のリストで緯度経度のリストを返す関数。
+    >>>>get_lat_lon_from_address(['東京都文京区本郷7-3-1','東京都文京区湯島３丁目３０−１'])
+    [['35.712056', '139.762775'], ['35.707771', '139.768205']]
+    """
+    url = 'http://www.geocoding.jp/api/'
+    latlons = []
+    for address in tqdm(address_l):
+        payload = {"v": 1.1, 'q': address}
+        r = requests.get(url, params=payload)
+        ret = BeautifulSoup(r.content,'lxml')
+        if ret.find('error'):
+            raise ValueError(f"Invalid address submitted. {address}")
+        else:
+            lat = ret.find('lat').string
+            lon = ret.find('lng').string
+            latlons.append([lat,lon])
+            df.loc[address, "緯度"] = lat
+            df.loc[address, "軽度"] = lon
+            time.sleep(10)
+    return latlons
+get_lat_lon_from_address(df["位置"])
