@@ -7,9 +7,11 @@ from bs4 import BeautifulSoup
 import time
 from tqdm import tqdm
 
+#pdfファイルを読み込み
 file_name = "tokyo_park_list.pdf"
 read_file = camelot.read_pdf(file_name)
 
+#pdfファイルから読み込みたいページをcsvに保存関数
 def suginami_list():
     suginami_pages = []
     pages = ['90','91','92','93','94','95','96','97','98']
@@ -21,6 +23,7 @@ def suginami_list():
     
 suginami_list()
 
+#保存されたCSVファイルを読み込み
 df1 = pd.read_csv("90-page-90-table-1.csv")
 df2 = pd.read_csv("91-page-91-table-1.csv")
 df3 = pd.read_csv("92-page-92-table-1.csv")
@@ -31,6 +34,7 @@ df7 = pd.read_csv("96-page-96-table-1.csv")
 df8 = pd.read_csv("97-page-97-table-1.csv")
 df9 = pd.read_csv("98-page-98-table-1.csv")
 
+#CSVファイルを合体してデータを加工
 df = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9], ignore_index=True)
 df = df.replace( '\n', '', regex=True)
 df = df.replace( '　', '', regex=True)
@@ -46,16 +50,15 @@ df["面積"] = df["面積"].str.replace('国', '')
 df.drop(['土地所有別㎡', '開園年月日\n移管年月日'], axis='columns', inplace=True)
 df["面積"] = df["面積"].str.replace(',', '')
 df['面積'] = pd.to_numeric(df['面積'])
-df = df.sort_values(by="面積", ascending=False)
+#df = df.sort_values(by="面積", ascending=False)
 for n in range(0, 278):
     df["公園名"] = df["公園名"].str.replace(str(n), '')
+display(df.duplicated())
+df = df.drop([244])
+df = df.reset_index(drop=True)
 df
 
-map_test = folium.Map(location=[35.707409, 139.625657], zoom_start=17)
-marker1 = folium.Marker(location=[35.707409, 139.625657], popup='Home', icon=folium.Icon(color='red'))
-marker1.add_to(map_test)
-map_test
-
+#加工されたデータの中、住所データで緯度経度を取得
 def get_lat_lon_from_address(address_l):
     """
     address_lにlistの形で住所を入れてあげると、latlonsという入れ子上のリストで緯度経度のリストを返す関数。
@@ -74,8 +77,29 @@ def get_lat_lon_from_address(address_l):
             lat = ret.find('lat').string
             lon = ret.find('lng').string
             latlons.append([lat,lon])
-            df.loc[address, "緯度"] = lat
-            df.loc[address, "軽度"] = lon
+            longlat.loc[address, "緯度"] = lat
+            longlat.loc[address, "経度"] = lon
             time.sleep(10)
     return latlons
-get_lat_lon_from_address(df["位置"])
+    
+get_lat_lon_from_address(df['位置'])
+
+longlat
+
+#Dataframeを合体
+df_list = df.join(longlat)
+df_list
+
+#地図の中心を設定
+suginami_map = folium.Map(location=[35.704498, 139.619058], zoom_start=12)
+suginami_map
+
+#取得した緯度経度を地図に表示してhtmlファイルに保存
+for i in df_list.index:
+    name = df_list.loc[i, "公園名"]
+    lat = df_list.loc[i, '緯度']
+    lng = df_list.loc[i, '経度']
+    mark = folium.Marker([lat, lng], popup=name, icon=folium.Icon(color='blue'))
+    mark.add_to(suginami_map)
+suginami_map.save('suginami_park_map.html')
+suginami_map
