@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>D3.js study</title>
+    <style>
+        .tooltip {
+            position: absolute;
+            background-color: white;
+            padding: 5px;
+            width: auto;
+            height: auto;
+            text-align: center;
+            font-size: 15px;
+            -webkit-box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+            -moz-box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script>
+        var margin = {top: 20, right: 20, bottom: 30, left: 40};
+        var width = 1750 - margin.left - margin.right;
+        var height = 600 - margin.top - margin.bottom;
+        var w = width;
+        var h = height;
+
+        var color = d3.scaleOrdinal(d3.schemeCategory20c);
+        
+        d3.csv("130001_tokyo_covid19_patients.csv", function(error, data){
+            if (error) throw error;
+            
+            var dataset = {};
+            
+            var parseTime = d3.timeParse("%d-%b-%y");
+            data.forEach(function(d) {
+                var strArr = d["公表_年月日"]
+                if (dataset[strArr]) {
+                    dataset[strArr] = dataset[strArr] + 1;
+                } else {
+                    dataset[strArr] = 0 + 1;
+                }
+            });
+
+            var tooltip = d3.select("body")
+            .append("div")
+            .attr("class", "tooltip");
+
+            var dlist = d3.entries(dataset)
+
+            console.log(dlist);
+            key = d3.keys(dataset);
+            val = d3.values(dataset);
+            map = d3.map(dataset);
+            // canvas エリアー
+            var svg = d3.select("body")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h)
+
+            var xScale = d3.scaleBand()
+                .domain(dlist.map(function(d) {
+                    return d.key;
+                }))
+                .range([margin.left, 1645])
+
+            var xAxis = d3.axisBottom()
+                .scale(xScale)
+
+            var yScale = d3.scaleLinear()
+                .domain([0, d3.max(dlist, function(d) {
+                    return d.value;
+                })])
+                .range([height - margin.top - margin.bottom, 0]);
+            var yAxis = d3.axisLeft()
+                .scale(yScale)
+                .ticks(10);
+            
+            // バー
+            var bars = svg.selectAll(".myBars")
+                .data(dlist)
+                .enter()
+                .append("rect");
+
+            bars.attr("x", function(d){
+                return xScale(d.key);
+                })
+                .attr("y", function(d) {
+                    return yScale(d.value);
+                })
+                .attr("width", xScale.bandwidth())
+                .attr("height", function(d){
+                    return h -margin.top - margin.bottom - yScale(d.value)
+                })
+                .attr("fill", function(d, i) {
+                    return color(i)
+                })
+                .on("mouseover", function(d) {
+                    d3.select(this)
+                        .attr("fill", "red")
+                    
+                    tooltip
+                        .style("visibility", "visible")
+                        .html("日付 : " + d.key + "<br>" + "人数 : " + d.value + "人");                   
+                })
+                .attr("id", function(d, i) {
+                    return i;
+                })
+                .on("mouseout", function() {
+                    d3.select(this)
+                        .attr("fill", function() {
+                            return "" + color(this.id) + "";
+                        })
+                    tooltip.style("visibility", "hidden");
+                })
+                .on("mousemove", function(d) {
+                    tooltip.style("top", (d3.event.pageY - 20) + "px")
+                    tooltip.style("left", (d3.event.pageX + 10) + "px");
+                })
+
+            var axis_bottom = svg.append("g")
+                .attr("class", "x axix")
+                .attr("transform", "translate(0, " + 500 + ")")
+                .attr("writing-mode", "tb-rl")
+                .style("font-size", "4px")
+                .call(xAxis);
+
+            axis_bottom.selectAll("text")
+            .attr("dy", "10px");
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate(40, 0)")
+                .attr("font-size", "5px")
+                .call(yAxis);
+        });
+    </script>
+</body>
+</html>
