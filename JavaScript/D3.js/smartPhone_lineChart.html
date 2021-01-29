@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>ラインチャート練習</title>
+        <style>
+            .tick line {
+                stroke: lightgray;
+                stroke-opacity: 0.7;
+            }
+        </style>
+    </head>
+    <body>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script>
+            d3.csv("smartphone_share_jp.csv", function(error, data) {
+                if (error) throw error;
+                
+                var margin = {left: 20, top: 10, bottom: 10, right: 20};
+                var width = 700 - margin.left - margin.right;
+                var height = 320 - margin.top - margin.bottom;
+
+                // 20色カラー
+                var colors = d3.scaleOrdinal(d3.schemeCategory20);
+                // csvファイルのカラム指定
+                var columns = [data.columns[1], data.columns[2], data.columns[3]]
+
+                // 日付以外のデバイスデータ
+                devicedata = data.map(function(d, i) {
+                    return { android: d["Android"], ios: d["iOS"], other: d["Other"]}
+                })
+                // 日付データ
+                yeardata = data.map(function(d) {
+                    return d["Year"]
+                })
+                
+                var val = devicedata;
+                // 各データの入れる空の配列
+                var android = [];
+                var ios = [];
+                var other = [];
+
+                // 各データを分離
+                val.forEach(function(d, i) {
+                    android[i] = val[i]["android"];
+                    ios[i] = val[i]["ios"];
+                    other[i] = val[i]["other"];
+                })
+
+                // 分離したデータを合体（2重配列）
+                var subdata = [android, ios, other];
+                // 整理したデータを入れる空の配列
+                var dataset = [];
+
+                // 空の配列にデータ整理
+                subdata.forEach(function(d, i) {
+                    dataset[i] = []
+                    d.forEach(function() {
+                        dataset[i] = yeardata.map(function(key, u) {
+                            return {x:key, y:d[u]}
+                        })
+                    })
+                })
+                // svg生成
+                var svg = d3.select("body")
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                // x軸のデータと位置を指定
+                var xScale = d3.scaleBand()
+                    .domain(yeardata.map(function(d) {
+                        return d;
+                    }))
+                    .range([margin.left, (width - margin.left - margin.right)])
+                // y軸のデータと位置を指定
+                var yScale = d3.scaleLinear()
+                    .domain([0, 100])
+                    .range([(height - margin.top - margin.bottom), margin.top])
+                
+                // x軸生成する位置と間隔指定
+                var xAxis = d3.axisBottom(xScale)
+                    .tickSize(-height + 2 * 15);
+                // y軸生成する位置と間隔指定
+                var yAxis = d3.axisLeft(yScale)
+                    .tickSize(-width + 2 * 30);
+                
+                // x、y軸生成
+                var x = svg.append("g")
+                    .attr("class", "x axis");
+                y = svg.append("g")
+                    .attr("class", "y axis");
+                x.attr("transform", "translate(" + margin.top + "," + (height - margin.top - margin.bottom) + ")")
+                    .call(xAxis)
+                y.attr("transform", "translate(" + (margin.left + margin.top) + "," + 0 +")")
+                    .call(yAxis)
+                // ラインのデータ指定
+                var line = d3.line()
+                    // .curve(d3.curveBasis)
+                    .x(function(d) {
+                        return xScale(d.x) + 48;
+                    })
+                    .y(function(d) {
+                        return yScale(d.y);
+                    })
+                
+                var lineG = svg.append("g")
+                    .selectAll("g")
+                    .data(dataset)
+                    .enter()
+                    .append("g");
+
+                lineG.append("path")
+                    .attr("class", "lineChart")
+                    .attr("fill", "none")
+                    .attr("stroke", function(d, i) {
+                        return colors(columns[i]);
+                    })
+                    .attr("d", line);
+
+                // カラー別のデータを表示（右上）
+                var legend = svg.append("g")
+                    .attr("text-anchor", "end")
+                    .selectAll("g")
+                    .data(columns)
+                    .enter()
+                    .append("g")
+                    .attr("transform", function(d, i) {
+                        return "translate(0," + i * 20 + ")";
+                    })
+
+                legend.append("rect")
+                    .attr("x", width - margin.left - margin.right - margin.top - 5)
+                    .attr("y", margin.left)
+                    .attr("width", 19)
+                    .attr("height", 19)
+                    .attr("fill", colors);
+
+                legend.append("text")
+                    .attr("x", width - margin.left - margin.right - margin.top - margin.bottom)
+                    .attr("y", margin.left + margin.top)
+                    .attr("dy", "0.32em")
+                    .text(function(d) {
+                        return d;
+                    })
+            })
+            
+        </script>
+    </body>
+</html>
